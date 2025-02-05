@@ -206,7 +206,6 @@ let main
       output_decorated
       output_decorated_dir
       prog5
-      statement_locs
   =
   let output_filename =
     match output_decorated with
@@ -225,7 +224,6 @@ let main
       without_loop_invariants
       with_loop_leak_checks
       instrumentation
-      statement_locs
       sigm
       prog5
   in

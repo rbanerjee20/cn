@@ -28,9 +28,7 @@ val generate_c_specs
   bool ->
   bool ->
   Executable_spec_extract.instrumentation list ->
-  Cerb_location.t CStatements.LocMap.t ->
-  Executable_spec_utils.CF.GenTypes.genTypeCategory
-    Executable_spec_utils.CF.AilSyntax.sigma ->
+  Cerb_frontend.GenTypes.genTypeCategory Cn_to_ail.A.sigma ->
   unit Mucore.file ->
   executable_spec
 
