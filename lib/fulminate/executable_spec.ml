@@ -134,7 +134,8 @@ let memory_accesses_injections ail_prog =
        match access with
        | Ail_analysis.Load { loc; _ } ->
          let b, e = pos_bbox loc in
-         acc := (point b, [ "CN_LOAD(" ]) :: (point e, [ ")" ]) :: !acc
+         (* We need an additional pair of parentheses for passing struct initializers to the CN_LOAD macro *)
+         acc := (point b, [ "CN_LOAD((" ]) :: (point e, [ "))" ]) :: !acc
        | Store { lvalue; expr; _ } ->
          (* NOTE: we are not using the location of the access (the AilEassign), because if
            in the source the assignment was surrounded by parens its location will contain
