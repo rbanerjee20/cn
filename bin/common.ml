@@ -119,6 +119,7 @@ let there_can_only_be_one =
 
 
 let with_well_formedness_check
+      ~executable_spec
       (* CLI arguments *)
       ~filename
       ~macros
@@ -167,6 +168,7 @@ let with_well_formedness_check
       let@ prog5 =
         Core_to_mucore.normalise_file
           ~inherit_loc:(not no_inherit_loc)
+          ~executable_spec
           (markers_env, snd ail_prog)
           prog
       in

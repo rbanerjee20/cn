@@ -18,6 +18,7 @@ let well_formed
   =
   let filename = Common.there_can_only_be_one filename in
   Common.with_well_formedness_check
+    ~executable_spec:false
     ~filename
     ~macros
     ~incl_dirs

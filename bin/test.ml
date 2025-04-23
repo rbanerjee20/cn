@@ -66,6 +66,7 @@ let run_tests
   in
   let filename = Common.there_can_only_be_one filename in
   Common.with_well_formedness_check (* CLI arguments *)
+    ~executable_spec:false
     ~filename
     ~macros
     ~incl_dirs

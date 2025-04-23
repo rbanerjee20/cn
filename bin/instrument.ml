@@ -137,6 +137,7 @@ let generate_executable_specs
       (filename, None)
   in
   Common.with_well_formedness_check (* CLI arguments *)
+    ~executable_spec:true
     ~filename
     ~macros
     ~incl_dirs

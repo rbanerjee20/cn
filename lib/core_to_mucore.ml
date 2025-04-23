@@ -1438,6 +1438,7 @@ end
 
 let normalise_fun_map_decl
       ~inherit_loc
+      ~executable_spec
       (markers_env, ail_prog)
       (global_types, visible_objects_env)
       env
@@ -1568,6 +1569,7 @@ let normalise_fun_map_decl
 
 let normalise_fun_map
       ~inherit_loc
+      ~executable_spec
       (markers_env, ail_prog)
       (global_types, visible_objects_env)
       env
@@ -1583,6 +1585,7 @@ let normalise_fun_map
            let@ r =
              normalise_fun_map_decl
                ~inherit_loc
+               ~executable_spec
                (markers_env, ail_prog)
                (global_types, visible_objects_env)
                env
@@ -1710,7 +1713,12 @@ let translate_datatype env Cn.{ cn_dt_loc; cn_dt_name; cn_dt_cases; cn_dt_magic_
   (cn_dt_name, Mu.{ loc = cn_dt_loc; cases })
 
 
-let normalise_file ~inherit_loc ((fin_markers_env : CAE.fin_markers_env), ail_prog) file =
+let normalise_file
+      ~inherit_loc
+      ~executable_spec
+      ((fin_markers_env : CAE.fin_markers_env), ail_prog)
+      file
+  =
   let open CF.AilSyntax in
   let open CF.Milicore in
   let@ tagDefs = normalise_tag_definitions file.mi_tagDefs in
@@ -1751,6 +1759,7 @@ let normalise_file ~inherit_loc ((fin_markers_env : CAE.fin_markers_env), ail_pr
   let@ funs, mk_functions =
     normalise_fun_map
       ~inherit_loc
+      ~executable_spec
       (markers_env, ail_prog)
       (global_types, file.mi_visible_objects_env)
       env
