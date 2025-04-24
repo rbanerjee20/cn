@@ -119,7 +119,6 @@ let there_can_only_be_one =
 
 
 let with_well_formedness_check
-      ~executable_spec
       (* CLI arguments *)
       ~filename
       ~macros
@@ -135,6 +134,7 @@ let with_well_formedness_check
       ~no_inherit_loc
       ~magic_comment_char_dollar
       ~save_cpp
+      ~tmp_fulminate_hack
       ~(* Callbacks *)
        handle_error
       ~(f :
@@ -168,7 +168,7 @@ let with_well_formedness_check
       let@ prog5 =
         Core_to_mucore.normalise_file
           ~inherit_loc:(not no_inherit_loc)
-          ~executable_spec
+          ~tmp_fulminate_hack
           (markers_env, snd ail_prog)
           prog
       in

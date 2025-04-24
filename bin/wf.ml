@@ -18,7 +18,6 @@ let well_formed
   =
   let filename = Common.there_can_only_be_one filename in
   Common.with_well_formedness_check
-    ~executable_spec:false
     ~filename
     ~macros
     ~incl_dirs
@@ -33,6 +32,7 @@ let well_formed
     ~no_inherit_loc
     ~magic_comment_char_dollar
     ~save_cpp:None
+    ~tmp_fulminate_hack:false
     ~handle_error:(Common.handle_type_error ~json ?output_dir ~serialize_json:json_trace)
     ~f:(fun ~cabs_tunit:_ ~prog5:_ ~ail_prog:_ ~statement_locs:_ ~paused:_ ->
       Or_TypeError.return ())

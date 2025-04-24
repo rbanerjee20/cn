@@ -66,7 +66,6 @@ let run_tests
   in
   let filename = Common.there_can_only_be_one filename in
   Common.with_well_formedness_check (* CLI arguments *)
-    ~executable_spec:false
     ~filename
     ~macros
     ~incl_dirs
@@ -81,6 +80,7 @@ let run_tests
     ~no_inherit_loc
     ~magic_comment_char_dollar (* Callbacks *)
     ~save_cpp:None (* XXX *)
+    ~tmp_fulminate_hack:false
     ~handle_error
     ~f:(fun ~cabs_tunit ~prog5 ~ail_prog ~statement_locs:_ ~paused:_ ->
       let config : TestGeneration.config =

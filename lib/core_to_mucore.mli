@@ -3,7 +3,7 @@
 (** Entry point *)
 val normalise_file
   :  inherit_loc:bool ->
-  executable_spec:bool ->
+  tmp_fulminate_hack:bool ->
   Cerb_frontend.Cabs_to_ail_effect.fin_markers_env * 'a Cerb_frontend.AilSyntax.sigma ->
   ('b, unit) Cerb_frontend.Milicore.mi_file ->
   unit Mucore.file Or_TypeError.t

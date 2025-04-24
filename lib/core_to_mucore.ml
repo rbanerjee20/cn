@@ -1438,7 +1438,7 @@ end
 
 let normalise_fun_map_decl
       ~inherit_loc
-      ~executable_spec
+      ~tmp_fulminate_hack
       (markers_env, ail_prog)
       (global_types, visible_objects_env)
       env
@@ -1452,7 +1452,7 @@ let normalise_fun_map_decl
   | None -> return None
   | Some (loc, attrs, ret_ct, arg_cts, variadic, _) ->
     if variadic then
-      if executable_spec then
+      if tmp_fulminate_hack then
         return None
       else
         unsupported loc !^"variadic functions"
@@ -1574,7 +1574,7 @@ let normalise_fun_map_decl
 
 let normalise_fun_map
       ~inherit_loc
-      ~executable_spec
+      ~tmp_fulminate_hack
       (markers_env, ail_prog)
       (global_types, visible_objects_env)
       env
@@ -1590,7 +1590,7 @@ let normalise_fun_map
            let@ r =
              normalise_fun_map_decl
                ~inherit_loc
-               ~executable_spec
+               ~tmp_fulminate_hack
                (markers_env, ail_prog)
                (global_types, visible_objects_env)
                env
@@ -1720,7 +1720,7 @@ let translate_datatype env Cn.{ cn_dt_loc; cn_dt_name; cn_dt_cases; cn_dt_magic_
 
 let normalise_file
       ~inherit_loc
-      ~executable_spec
+      ~tmp_fulminate_hack
       ((fin_markers_env : CAE.fin_markers_env), ail_prog)
       file
   =
@@ -1764,7 +1764,7 @@ let normalise_file
   let@ funs, mk_functions =
     normalise_fun_map
       ~inherit_loc
-      ~executable_spec
+      ~tmp_fulminate_hack
       (markers_env, ail_prog)
       (global_types, file.mi_visible_objects_env)
       env

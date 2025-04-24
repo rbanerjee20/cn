@@ -108,6 +108,7 @@ let generate_executable_specs
       copy_source_dir
       run
       print_steps
+      tmp_fulminate_hack
   =
   (*flags *)
   Cerb_debug.debug_level := debug_level;
@@ -137,7 +138,6 @@ let generate_executable_specs
       (filename, None)
   in
   Common.with_well_formedness_check (* CLI arguments *)
-    ~executable_spec:true
     ~filename
     ~macros
     ~incl_dirs
@@ -152,6 +152,7 @@ let generate_executable_specs
     ~no_inherit_loc
     ~magic_comment_char_dollar (* Callbacks *)
     ~save_cpp:save
+    ~tmp_fulminate_hack
     ~handle_error
     ~f:(fun ~cabs_tunit:_ ~prog5 ~ail_prog ~statement_locs:_ ~paused:_ ->
       Cerb_colour.without_colour
@@ -250,6 +251,11 @@ module Flags = struct
   let skip =
     let doc = "Skip instrumenting this function (or comma-separated names)" in
     Arg.(value & opt (list string) [] & info [ "skip" ] ~doc)
+
+
+  let tmp_fulminate_hack =
+    let doc = "Temporary Fulminate hack" in
+    Arg.(value & flag & info [ "tmp-fulminate-hack" ] ~doc)
 end
 
 let cmd =
@@ -285,6 +291,7 @@ let cmd =
     $ Flags.copy_source_dir
     $ Flags.run
     $ Flags.print_steps
+    $ Flags.tmp_fulminate_hack
   in
   let doc =
     "Instruments [FILE] with runtime C assertions that check the properties provided in \

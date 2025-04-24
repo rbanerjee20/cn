@@ -36,8 +36,7 @@ let run_seq_tests
     match e.msg with TypeErrors.Unsupported _ -> exit 2 | _ -> exit 1
   in
   let filename = Common.there_can_only_be_one filename in
-  Common.with_well_formedness_check
-    ~executable_spec:false (* CLI arguments *)
+  Common.with_well_formedness_check (* CLI arguments *)
     ~filename
     ~macros
     ~incl_dirs
@@ -52,6 +51,7 @@ let run_seq_tests
     ~no_inherit_loc
     ~magic_comment_char_dollar (* Callbacks *)
     ~save_cpp:None (* XXX *)
+    ~tmp_fulminate_hack:false
     ~handle_error
     ~f:(fun ~cabs_tunit ~prog5 ~ail_prog ~statement_locs:_ ~paused:_ ->
       Cerb_colour.without_colour
