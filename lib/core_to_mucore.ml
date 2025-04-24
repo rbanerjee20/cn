@@ -1451,118 +1451,123 @@ let normalise_fun_map_decl
   match Pmap.lookup fname funinfo with
   | None -> return None
   | Some (loc, attrs, ret_ct, arg_cts, variadic, _) ->
-    let@ () = if variadic then unsupported loc !^"variadic functions" else return () in
-    (match decl with
-     | CF.Milicore.Mi_Fun (_bt, _args, _pe) -> assert false
-     | Mi_Proc (loc, _mrk, _ret_bt, args, body, labels) ->
-       debug 2 (lazy (item "normalising procedure" (Sym.pp fname)));
-       let@ parsed_defn_specs = liftParse (Parse.function_spec attrs) in
-       let parsed_decl_spec =
-         Option.fold (Sym.Map.find_opt fname fun_specs) ~none:[] ~some:Fun.id
-       in
-       let@ parsed =
-         Spec.there_can_only_be_one loc fname parsed_decl_spec parsed_defn_specs
-       in
-       debug 6 (lazy (string "parsed spec attrs"));
-       let _, defn_marker, _, ail_args, _ =
-         List.assoc Sym.equal fname ail_prog.CF.AilSyntax.function_definitions
-       in
-       let@ env, d_st =
-         Spec.setup_env_desugaring_state
-           loc
-           defn_marker
-           markers_env
-           parsed.if_spec
-           env
-           args
-           (List.map snd arg_cts)
-       in
-       let@ { trusted; accesses; requires; ensures; functions }, ret_s, d_st =
-         Spec.desugar global_types d_st parsed
-       in
-       debug 6 (lazy (!^"function requires/ensures" ^^^ Sym.pp fname));
-       debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_accesses accesses)));
-       debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_requires requires)));
-       debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_ensures ensures)));
-       let@ args_and_body =
-         make_function_args
-           (fun arg_states env st ->
-              let st = Translate.C_vars.push_scope st Translate.C_vars.start in
-              let@ body =
-                n_expr
-                  ~inherit_loc
-                  loc
-                  ( (env, Translate.C_vars.get_old_scopes st),
-                    (markers_env, d_st.inner.cn_state) )
-                  (global_types, visible_objects_env)
-                  body
-              in
-              let@ returned =
-                Translate.return_type
-                  loc
-                  env
-                  (Translate.C_vars.add arg_states st)
-                  (ret_s, ret_ct)
-                  (accesses, ensures)
-              in
-              let@ labels =
-                PmapM.mapM
-                  (normalise_label
-                     ~inherit_loc
-                     fname
-                     (markers_env, CAE.(d_st.inner.cn_state))
-                     (global_types, visible_objects_env)
-                     (accesses, loop_attributes)
-                     env
-                     st)
-                  labels
-                  Sym.compare
-              in
-              return (body, labels, returned))
-           loc
-           env
-           (List.combine (List.combine ail_args arg_cts) args)
-           (accesses, requires)
-       in
-       let desugared_spec = Mu.{ accesses = List.map snd accesses; requires; ensures } in
-       return (Some (Mu.Proc { loc; args_and_body; trusted; desugared_spec }, functions))
-     | Mi_ProcDecl (loc, ret_bt, _bts) ->
-       (match Sym.Map.find_opt fname fun_specs with
-        | Some parsed_decl_spec ->
-          let@ () =
-            check_against_core_bt loc ret_bt (Memory.bt_of_sct (convert_ct loc ret_ct))
-          in
-          let@ parsed = Spec.there_can_only_be_one loc fname parsed_decl_spec [] in
-          let ail_marker, spec_loc, spec_args = Option.get parsed.if_spec in
-          let d_st = CAE.{ inner = Pmap.find ail_marker markers_env; markers_env } in
-          let@ spec_args, d_st = Spec.desugar_and_add_args d_st spec_args in
-          let@ { trusted = _; accesses; requires; ensures; functions }, ret_s, _ =
-            Spec.desugar global_types d_st parsed
-          in
-          let@ () =
-            let spec = List.length spec_args in
-            let decl = List.length arg_cts in
-            if spec != decl then
-              fail { loc = spec_loc; msg = Number_spec_args { spec; decl } }
-            else
-              return ()
-          in
-          let@ args_and_rt =
-            make_fun_with_spec_args
-              (fun env st ->
-                 let@ returned =
-                   Translate.return_type loc env st (ret_s, ret_ct) (accesses, ensures)
-                 in
-                 return returned)
-              loc
-              env
-              (List.combine spec_args (List.map snd arg_cts))
-              (accesses, requires)
-          in
-          let ft = at_of_arguments Tools.id args_and_rt in
-          return (Some (Mu.ProcDecl (loc, Some ft), functions))
-        | _ -> return (Some (Mu.ProcDecl (loc, None), [])))
-     | Mi_BuiltinDecl (_loc, _bt, _bts) -> assert false)
+    if variadic then
+      if executable_spec then
+        return None
+      else
+        unsupported loc !^"variadic functions"
+    else (
+      match decl with
+      | CF.Milicore.Mi_Fun (_bt, _args, _pe) -> assert false
+      | Mi_Proc (loc, _mrk, _ret_bt, args, body, labels) ->
+        debug 2 (lazy (item "normalising procedure" (Sym.pp fname)));
+        let@ parsed_defn_specs = liftParse (Parse.function_spec attrs) in
+        let parsed_decl_spec =
+          Option.fold (Sym.Map.find_opt fname fun_specs) ~none:[] ~some:Fun.id
+        in
+        let@ parsed =
+          Spec.there_can_only_be_one loc fname parsed_decl_spec parsed_defn_specs
+        in
+        debug 6 (lazy (string "parsed spec attrs"));
+        let _, defn_marker, _, ail_args, _ =
+          List.assoc Sym.equal fname ail_prog.CF.AilSyntax.function_definitions
+        in
+        let@ env, d_st =
+          Spec.setup_env_desugaring_state
+            loc
+            defn_marker
+            markers_env
+            parsed.if_spec
+            env
+            args
+            (List.map snd arg_cts)
+        in
+        let@ { trusted; accesses; requires; ensures; functions }, ret_s, d_st =
+          Spec.desugar global_types d_st parsed
+        in
+        debug 6 (lazy (!^"function requires/ensures" ^^^ Sym.pp fname));
+        debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_accesses accesses)));
+        debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_requires requires)));
+        debug 6 (lazy (CF.Pp_ast.pp_doc_tree (dtree_of_ensures ensures)));
+        let@ args_and_body =
+          make_function_args
+            (fun arg_states env st ->
+               let st = Translate.C_vars.push_scope st Translate.C_vars.start in
+               let@ body =
+                 n_expr
+                   ~inherit_loc
+                   loc
+                   ( (env, Translate.C_vars.get_old_scopes st),
+                     (markers_env, d_st.inner.cn_state) )
+                   (global_types, visible_objects_env)
+                   body
+               in
+               let@ returned =
+                 Translate.return_type
+                   loc
+                   env
+                   (Translate.C_vars.add arg_states st)
+                   (ret_s, ret_ct)
+                   (accesses, ensures)
+               in
+               let@ labels =
+                 PmapM.mapM
+                   (normalise_label
+                      ~inherit_loc
+                      fname
+                      (markers_env, CAE.(d_st.inner.cn_state))
+                      (global_types, visible_objects_env)
+                      (accesses, loop_attributes)
+                      env
+                      st)
+                   labels
+                   Sym.compare
+               in
+               return (body, labels, returned))
+            loc
+            env
+            (List.combine (List.combine ail_args arg_cts) args)
+            (accesses, requires)
+        in
+        let desugared_spec = Mu.{ accesses = List.map snd accesses; requires; ensures } in
+        return (Some (Mu.Proc { loc; args_and_body; trusted; desugared_spec }, functions))
+      | Mi_ProcDecl (loc, ret_bt, _bts) ->
+        (match Sym.Map.find_opt fname fun_specs with
+         | Some parsed_decl_spec ->
+           let@ () =
+             check_against_core_bt loc ret_bt (Memory.bt_of_sct (convert_ct loc ret_ct))
+           in
+           let@ parsed = Spec.there_can_only_be_one loc fname parsed_decl_spec [] in
+           let ail_marker, spec_loc, spec_args = Option.get parsed.if_spec in
+           let d_st = CAE.{ inner = Pmap.find ail_marker markers_env; markers_env } in
+           let@ spec_args, d_st = Spec.desugar_and_add_args d_st spec_args in
+           let@ { trusted = _; accesses; requires; ensures; functions }, ret_s, _ =
+             Spec.desugar global_types d_st parsed
+           in
+           let@ () =
+             let spec = List.length spec_args in
+             let decl = List.length arg_cts in
+             if spec != decl then
+               fail { loc = spec_loc; msg = Number_spec_args { spec; decl } }
+             else
+               return ()
+           in
+           let@ args_and_rt =
+             make_fun_with_spec_args
+               (fun env st ->
+                  let@ returned =
+                    Translate.return_type loc env st (ret_s, ret_ct) (accesses, ensures)
+                  in
+                  return returned)
+               loc
+               env
+               (List.combine spec_args (List.map snd arg_cts))
+               (accesses, requires)
+           in
+           let ft = at_of_arguments Tools.id args_and_rt in
+           return (Some (Mu.ProcDecl (loc, Some ft), functions))
+         | _ -> return (Some (Mu.ProcDecl (loc, None), [])))
+      | Mi_BuiltinDecl (_loc, _bt, _bts) -> assert false)
 
 
 (* BuiltinDecl(loc, convert_bt loc bt, List.map (convert_bt loc) bts) *)
