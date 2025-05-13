@@ -582,9 +582,10 @@ static inline void cn_postfix(void *ptr, size_t size) {
     typeof(LV) *__tmp;                                                                   \
     __tmp = &(LV);                                                                       \
     update_cn_error_message_info_access_check(0);                                        \
+    typeof(X) __tmp_X = (X);                                                             \
     c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
     cn_store(__tmp, sizeof(typeof(LV)));                                                 \
-    *__tmp op## = (X);                                                                   \
+    *__tmp op## = __tmp_X;                                                               \
   })
 
 #define CN_STORE(LV, X) CN_STORE_OP(LV, , X)
