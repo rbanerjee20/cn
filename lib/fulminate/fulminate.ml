@@ -172,12 +172,8 @@ let main
   let compile_commands_json_oc =
     Stdlib.open_out (get_filename_with_prefix output_dir "compile_commands.json")
   in
-  let opam_switch_prefix =
-    match Sys.getenv_opt "OPAM_SWITCH_PREFIX" with
-    | Some p -> p
-    | None -> failwith "OPAM_SWITCH_PREFIX not set"
-  in
-  let directory = match output_dir with Some dir -> dir | None -> "." in
+  let opam_switch_prefix = Sys.getenv "OPAM_SWITCH_PREFIX" in
+  let directory = match output_dir with Some dir -> dir | None -> Sys.getcwd () in
   let compile_commands_json_str =
     [ "[";
       "\n\t{ \"directory\": \"" ^ directory ^ "\",";
