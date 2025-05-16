@@ -1,14 +1,10 @@
 #include <inttypes.h>
 #include <signal.h>  // for SIGABRT
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <cn-executable/utils.h>
 
-#define cn_printf(level, ...)                                                            \
-  if (get_cn_logging_level() >= level) {                                                 \
-    printf(__VA_ARGS__);                                                                 \
-  }
+
 
 typedef hash_table ownership_ghost_state;
 
@@ -307,13 +303,14 @@ void dump_ownership_state() {
 }
 
 void cn_get_ownership(void* generic_c_ptr, size_t size, char* check_msg) {
+  cn_printf(CN_LOGGING_INFO, "[CN: taking ownership] " FMT_PTR_2 ", size: %lu\n", (unsigned long) generic_c_ptr, size);
   /* Used for precondition and loop invariant taking/getting of ownership */
   c_ownership_check(check_msg, generic_c_ptr, (int)size, cn_stack_depth - 1);
   c_add_to_ghost_state(generic_c_ptr, size, cn_stack_depth);
 }
 
 void cn_put_ownership(void* generic_c_ptr, size_t size) {
-  // cn_printf(CN_LOGGING_INFO, "[CN: returning ownership] " FMT_PTR_2 ", size: %lu\n", generic_c_ptr, size);
+  cn_printf(CN_LOGGING_INFO, "[CN: returning ownership] " FMT_PTR_2 ", size: %lu\n", (unsigned long) generic_c_ptr, size);
   //// print_error_msg_info();
   c_ownership_check(
       "Postcondition ownership check", generic_c_ptr, (int)size, cn_stack_depth);
@@ -374,7 +371,10 @@ void c_ownership_check(char* access_kind,
     int offset,
     signed long expected_stack_depth) {
   int64_t address_key = 0;
-  // cn_printf(CN_LOGGING_INFO, "C: Checking ownership for [ " FMT_PTR " .. " FMT_PTR " ] -- ", generic_c_ptr, generic_c_ptr + offset);
+  cn_printf(CN_LOGGING_INFO,
+      "C: Checking ownership for [ " FMT_PTR " .. " FMT_PTR " ] -- \n",
+      (unsigned long) generic_c_ptr,
+      (unsigned long) generic_c_ptr + offset);
   for (int i = 0; i < offset; i++) {
     address_key = (uintptr_t)generic_c_ptr + i;
     int curr_depth = ownership_ghost_state_get(&address_key);

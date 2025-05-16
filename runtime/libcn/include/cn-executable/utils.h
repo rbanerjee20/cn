@@ -2,6 +2,8 @@
 #ifndef CN_UTILS
 #define CN_UTILS
 
+#include <stdio.h>
+
 #include "alloc.h"
 #include "hash_table.h"
 #include "rts_deps.h"
@@ -13,6 +15,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define cn_printf(level, ...)                                                            \
+  if (get_cn_logging_level() >= level) {                                                 \
+    printf(__VA_ARGS__);                                                                 \
+  }
 
 enum spec_mode {
   PRE = 1,
@@ -556,14 +563,14 @@ void c_ownership_check(
   c_concat_with_mapping_stat(CTYPE VAR_NAME = EXPR, CTYPE, VAR_NAME)
 // /Unused
 
-static inline void cn_load(void *ptr, size_t size) {
-  //   cn_printf(CN_LOGGING_INFO, "  \x1b[31mLOAD\x1b[0m[%lu] - ptr: %p\n", size, ptr);
+static inline void cn_load(void *ptr, size_t size, const char *fun_name) {
+    cn_printf(CN_LOGGING_INFO, "  \t(%s)\n\t \x1b[31mLOAD\x1b[0m[%lu] - ptr: %p\n", fun_name, size, ptr);
 }
-static inline void cn_store(void *ptr, size_t size) {
-  //   cn_printf(CN_LOGGING_INFO, "  \x1b[31mSTORE\x1b[0m[%lu] - ptr: %p\n", size, ptr);
+static inline void cn_store(void *ptr, size_t size, const char *fun_name) {
+    cn_printf(CN_LOGGING_INFO, "  \t(%s)\n\t \x1b[31mSTORE\x1b[0m[%lu] - ptr: %p\n", fun_name, size, ptr);
 }
-static inline void cn_postfix(void *ptr, size_t size) {
-  //   cn_printf(CN_LOGGING_INFO, "  \x1b[31mPOSTFIX\x1b[0m[%lu] - ptr: %p\n", size, ptr);
+static inline void cn_postfix(void *ptr, size_t size, const char *fun_name) {
+    cn_printf(CN_LOGGING_INFO, "  \t(%s)\n\t \x1b[31mPOSTFIX\x1b[0m[%lu] - ptr: %p\n", fun_name, size, ptr);
 }
 
 // use this macro to wrap an argument to another macro that contains commas
@@ -573,8 +580,8 @@ static inline void cn_postfix(void *ptr, size_t size) {
   ({                                                                                     \
     typeof(LV) *__tmp = &(LV);                                                           \
     update_cn_error_message_info_access_check(0);                                        \
+    cn_load(__tmp, sizeof(typeof(LV)), __func__);                                                  \
     c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
-    cn_load(__tmp, sizeof(typeof(LV)));                                                  \
     *__tmp;                                                                              \
   })
 
@@ -582,10 +589,11 @@ static inline void cn_postfix(void *ptr, size_t size) {
   ({                                                                                     \
     typeof(LV) *__tmp;                                                                   \
     __tmp = &(LV);                                                                       \
+    typeof(X) __tmp_X = (X);                                                             \
     update_cn_error_message_info_access_check(0);                                        \
+    cn_store(__tmp, sizeof(typeof(LV)), __func__);                                                 \
     c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
-    cn_store(__tmp, sizeof(typeof(LV)));                                                 \
-    *__tmp op## = (X);                                                                   \
+    *__tmp op## = __tmp_X;                                                               \
   })
 
 #define CN_STORE(LV, X) CN_STORE_OP(LV, , X)
@@ -595,9 +603,9 @@ static inline void cn_postfix(void *ptr, size_t size) {
     typeof(LV) *__tmp;                                                                   \
     __tmp = &(LV);                                                                       \
     update_cn_error_message_info_access_check(0);                                        \
+    cn_postfix(__tmp, sizeof(typeof(LV)), __func__);                                               \
     c_ownership_check(                                                                   \
         "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
-    cn_postfix(__tmp, sizeof(typeof(LV)));                                               \
     (*__tmp) OP;                                                                         \
   })
 
