@@ -151,6 +151,7 @@ typedef hash_table cn_map;
 
 void initialise_ownership_ghost_state(void);
 void free_ownership_ghost_state(void);
+void dump_ownership_ghost_state(int stack_depth);
 void initialise_ghost_stack_depth(void);
 signed long get_cn_stack_depth(void);
 void ghost_stack_depth_incr(void);
@@ -580,7 +581,6 @@ static inline void cn_postfix(void *ptr, size_t size, const char *fun_name) {
   ({                                                                                     \
     typeof(LV) *__tmp = &(LV);                                                           \
     update_cn_error_message_info_access_check(0);                                        \
-    cn_load(__tmp, sizeof(typeof(LV)), __func__);                                                  \
     c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
     *__tmp;                                                                              \
   })
@@ -589,11 +589,9 @@ static inline void cn_postfix(void *ptr, size_t size, const char *fun_name) {
   ({                                                                                     \
     typeof(LV) *__tmp;                                                                   \
     __tmp = &(LV);                                                                       \
-    typeof(X) __tmp_X = (X);                                                             \
     update_cn_error_message_info_access_check(0);                                        \
-    cn_store(__tmp, sizeof(typeof(LV)), __func__);                                                 \
     c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
-    *__tmp op## = __tmp_X;                                                               \
+    *__tmp op## = (X);                                                               \
   })
 
 #define CN_STORE(LV, X) CN_STORE_OP(LV, , X)
@@ -603,7 +601,6 @@ static inline void cn_postfix(void *ptr, size_t size, const char *fun_name) {
     typeof(LV) *__tmp;                                                                   \
     __tmp = &(LV);                                                                       \
     update_cn_error_message_info_access_check(0);                                        \
-    cn_postfix(__tmp, sizeof(typeof(LV)), __func__);                                               \
     c_ownership_check(                                                                   \
         "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
     (*__tmp) OP;                                                                         \
