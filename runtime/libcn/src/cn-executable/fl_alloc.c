@@ -136,16 +136,16 @@ void cn_fl_fprint(FILE* file) {
   printf("\n");
 }
 
-void cn_fl_print() {
+void cn_fl_print(void) {
   cn_fl_fprint(stdout);
 }
 #else
 void cn_fl_fprint(FILE* file) {}
 
-void cn_fl_print() {}
+void cn_fl_print(void) {}
 #endif
 
-void cn_fl_free_all() {
+void cn_fl_free_all(void) {
   if (!block_list) {
     block_list = (block_header*)((uintptr_t)free_list_mem + BLOCK_LIST_PADDING);
   }

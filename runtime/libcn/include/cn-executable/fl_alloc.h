@@ -21,9 +21,9 @@ void* cn_fl_realloc(void* p, size_t size);
 
 void cn_fl_free(void* p);
 
-void cn_fl_free_all();
+void cn_fl_free_all(void);
 
-void cn_fl_print();
+void cn_fl_print(void);
 
 #ifdef __cplusplus
 }
