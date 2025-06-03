@@ -17,7 +17,7 @@ void* cn_bump_malloc(size_t nbytes);
 
 void* cn_bump_calloc(size_t count, size_t size);
 
-void cn_bump_free_all();
+void cn_bump_free_all(void);
 
 typedef struct {
   uint16_t block;
@@ -28,7 +28,7 @@ cn_bump_frame_id cn_bump_get_frame_id(void);
 
 void cn_bump_free_after(cn_bump_frame_id frame_id);
 
-void cn_bump_print();
+void cn_bump_print(void);
 
 #ifdef __cplusplus
 }
