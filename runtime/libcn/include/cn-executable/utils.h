@@ -5,6 +5,7 @@
 #include "bump_alloc.h"
 #include "fl_alloc.h"
 #include "hash_table.h"
+#include "internal-utils.h"
 #include "rts_deps.h"
 
 #define cn_printf(level, ...)                                                            \
@@ -32,11 +33,6 @@ enum spec_mode {
 /* Error handlers */
 void reset_fulminate(void);
 
-enum cn_logging_level {
-  CN_LOGGING_NONE = 0,
-  CN_LOGGING_ERROR = 1,
-  CN_LOGGING_INFO = 2
-};
 
 enum cn_logging_level get_cn_logging_level(void);
 
