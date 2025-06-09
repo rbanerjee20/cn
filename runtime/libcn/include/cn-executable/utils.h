@@ -244,26 +244,6 @@ cn_bool *cn_bool_not(cn_bool *b);
 cn_bool *cn_bool_implies(cn_bool *b1, cn_bool *b2);
 cn_bool *cn_bool_equality(cn_bool *b1, cn_bool *b2);
 void *cn_ite(cn_bool *b, void *e1, void *e2);
-/* /EXTERNAL */
-
-cn_map *map_create(void);
-cn_map *cn_map_set(cn_map *m, cn_integer *key, void *value);
-cn_map *cn_map_deep_copy(cn_map *m1);
-cn_bool *cn_map_equality(
-    cn_map *m1, cn_map *m2, cn_bool *(value_equality_fun)(void *, void *));
-
-#define convert_to_cn_map(c_ptr, cntype_conversion_fn, num_elements)                     \
-  ({                                                                                     \
-    cn_map *m = map_create();                                                            \
-    for (int i = 0; i < num_elements; i++) {                                             \
-      cn_map_set(m, convert_to_cn_integer(i), cntype_conversion_fn(c_ptr[i]));           \
-    }                                                                                    \
-    m;                                                                                   \
-  })
-#define convert_from_cn_map(arr, m, cntype, num_elements)                                \
-  for (int i = 0; i < num_elements; i++) {                                               \
-    arr[i] = convert_from_##cntype(cn_map_get_##cntype(m, convert_to_cn_integer(i)));    \
-  }
 
 cn_bool *cn_pointer_equality(void *i1, void *i2);
 cn_bool *cn_pointer_is_null(cn_pointer *);
@@ -271,11 +251,41 @@ cn_bool *cn_pointer_le(cn_pointer *i1, cn_pointer *i2);
 cn_bool *cn_pointer_lt(cn_pointer *i1, cn_pointer *i2);
 cn_bool *cn_pointer_ge(cn_pointer *i1, cn_pointer *i2);
 cn_bool *cn_pointer_gt(cn_pointer *i1, cn_pointer *i2);
+/* /EXTERNAL */
+
+/* CN maps */
+
+/* INTERNAL, EXTERNAL, BENNET */
+cn_map *map_create(void);
+cn_map *cn_map_set(cn_map *m, cn_integer *key, void *value);
+/* /INTERNAL, EXTERNAL, BENNET */
+
+/* EXTERNAL */
+cn_map *cn_map_deep_copy(cn_map *m1);
+cn_bool *cn_map_equality(
+    cn_map *m1, cn_map *m2, cn_bool *(value_equality_fun)(void *, void *));
+
+
+#define convert_to_cn_map(c_ptr, cntype_conversion_fn, num_elements)                     \
+({                                                                                     \
+  cn_map *m = map_create();                                                            \
+  for (int i = 0; i < num_elements; i++) {                                             \
+    cn_map_set(m, convert_to_cn_integer(i), cntype_conversion_fn(c_ptr[i]));           \
+  }                                                                                    \
+  m;                                                                                   \
+})
+#define convert_from_cn_map(arr, m, cntype, num_elements)                                \
+for (int i = 0; i < num_elements; i++) {                                               \
+  arr[i] = convert_from_##cntype(cn_map_get_##cntype(m, convert_to_cn_integer(i)));    \
+}
+
 
 #define cn_pointer_deref(CN_PTR, CTYPE) *((CTYPE *)CN_PTR->ptr)
+/* /EXTERNAL */
 
 /* CN integer type auxilliary functions */
 
+/* EXTERNAL, BENNET */
 #define CN_GEN_EQUALITY(CNTYPE) CN_GEN_EQUALITY_(CNTYPE)
 
 #define CN_GEN_EQUALITY_(CNTYPE)                                                         \
@@ -417,10 +427,14 @@ cn_bool *cn_pointer_gt(cn_pointer *i1, cn_pointer *i2);
     res->val = i1->val | i2->val;                                                        \
     return res;                                                                          \
   }
+/* /EXTERNAL, BENNET */
 
+/* EXTERNAL */
 cn_bits_u32 *cn_bits_u32_fls(cn_bits_u32 *i1);
 cn_bits_u64 *cn_bits_u64_flsl(cn_bits_u64 *i1);
+/* /EXTERNAL */
 
+/* INTERNAL */
 static inline int ipow(int base, int exp) {
   int result = 1;
   for (;;) {
@@ -434,7 +448,9 @@ static inline int ipow(int base, int exp) {
 
   return result;
 }
+/* /INTERNAL */
 
+/* EXTERNAL, BENNET */
 #define CN_GEN_POW(CTYPE, CNTYPE)                                                        \
   static inline CNTYPE *CNTYPE##_pow(CNTYPE *i1, CNTYPE *i2) {                           \
     CNTYPE *res = (CNTYPE *)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));      \
@@ -585,24 +601,38 @@ CN_GEN_EQUALITY(cn_alloc_id)
 CN_GEN_DEFAULT(cn_pointer)
 CN_GEN_MAP_GET(cn_pointer)
 CN_GEN_MAP_GET(cn_map)
+/* /EXTERNAL, BENNET */
 
 /* OWNERSHIP */
 
+/* INTERNAL */
 int ownership_ghost_state_get(int64_t *address_key);
 void ownership_ghost_state_set(int64_t *address_key, int stack_depth_val);
 void ownership_ghost_state_remove(int64_t *address_key);
+/* /INTERNAL */
 
+/* INTERNAL */
 /* CN ownership checking */
 void cn_get_ownership(void *generic_c_ptr, size_t size, char *check_msg);
 void cn_put_ownership(void *generic_c_ptr, size_t size);
-void cn_assume_ownership(void *generic_c_ptr, unsigned long size, char *fun);
-void cn_get_or_put_ownership(enum spec_mode spec_mode, void *generic_c_ptr, size_t size);
+/* /INTERNAL*/
 
+/* EXTERNAL, BENNET */
+void cn_assume_ownership(void *generic_c_ptr, unsigned long size, char *fun);
+/* /EXTERNAL, BENNET */
+
+/* EXTERNAL */
+void cn_get_or_put_ownership(enum spec_mode spec_mode, void *generic_c_ptr, size_t size);
+/* EXTERNAL */
+
+/* INTERNAL, EXTERNAL */
 /* C ownership checking */
 void c_add_to_ghost_state(void *ptr_to_local, size_t size, signed long stack_depth);
 void c_remove_from_ghost_state(void *ptr_to_local, size_t size);
 void c_ownership_check(
     char *access_kind, void *generic_c_ptr, int offset, signed long expected_stack_depth);
+/* /INTERNAL, EXTERNAL */
+
 
 // Unused
 #define c_concat_with_mapping_stat(STAT, CTYPE, VAR_NAME, GHOST_STATE, STACK_DEPTH)      \
@@ -616,6 +646,7 @@ void c_ownership_check(
   c_concat_with_mapping_stat(CTYPE VAR_NAME = EXPR, CTYPE, VAR_NAME)
 // /Unused
 
+/* INTERNAL */
 static inline void cn_load(void *ptr, size_t size) {
   //   cn_printf(CN_LOGGING_INFO, "  \x1b[31mLOAD\x1b[0m[%lu] - ptr: %p\n", size, ptr);
 }
@@ -625,42 +656,46 @@ static inline void cn_store(void *ptr, size_t size) {
 static inline void cn_postfix(void *ptr, size_t size) {
   //   cn_printf(CN_LOGGING_INFO, "  \x1b[31mPOSTFIX\x1b[0m[%lu] - ptr: %p\n", size, ptr);
 }
+/* /INTERNAL */
 
+// RB: unused?
 // use this macro to wrap an argument to another macro that contains commas
 #define CN_IGNORE_COMMA(...) __VA_ARGS__
 
+/* EXTERNAL */
 #define CN_LOAD(LV)                                                                      \
-  ({                                                                                     \
-    typeof(LV) *__tmp = &(LV);                                                           \
-    update_cn_error_message_info_access_check(0);                                        \
-    c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
-    cn_load(__tmp, sizeof(typeof(LV)));                                                  \
-    *__tmp;                                                                              \
-  })
+({                                                                                     \
+  typeof(LV) *__tmp = &(LV);                                                           \
+  update_cn_error_message_info_access_check(0);                                        \
+  c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
+  cn_load(__tmp, sizeof(typeof(LV)));                                                  \
+  *__tmp;                                                                              \
+})
 
 #define CN_STORE_OP(LV, op, X)                                                           \
-  ({                                                                                     \
-    typeof(LV) *__tmp;                                                                   \
-    __tmp = &(LV);                                                                       \
-    update_cn_error_message_info_access_check(0);                                        \
-    c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
-    cn_store(__tmp, sizeof(typeof(LV)));                                                 \
-    *__tmp op## = (X);                                                                   \
-  })
+({                                                                                     \
+  typeof(LV) *__tmp;                                                                   \
+  __tmp = &(LV);                                                                       \
+  update_cn_error_message_info_access_check(0);                                        \
+  c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
+  cn_store(__tmp, sizeof(typeof(LV)));                                                 \
+  *__tmp op## = (X);                                                                   \
+})
 
 #define CN_STORE(LV, X) CN_STORE_OP(LV, , X)
 
 #define CN_POSTFIX(LV, OP)                                                               \
-  ({                                                                                     \
-    typeof(LV) *__tmp;                                                                   \
-    __tmp = &(LV);                                                                       \
-    update_cn_error_message_info_access_check(0);                                        \
-    c_ownership_check(                                                                   \
-        "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
+({                                                                                     \
+  typeof(LV) *__tmp;                                                                   \
+  __tmp = &(LV);                                                                       \
+  update_cn_error_message_info_access_check(0);                                        \
+  c_ownership_check(                                                                   \
+    "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
     cn_postfix(__tmp, sizeof(typeof(LV)));                                               \
     (*__tmp) OP;                                                                         \
   })
-
+/* /EXTERNAL */
+  
 #ifdef __cplusplus
 }
 #endif
