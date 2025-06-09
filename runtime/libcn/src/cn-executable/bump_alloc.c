@@ -83,7 +83,7 @@ void* bump_by(size_t nbytes) {
   }
 
   if (!bump_can_fit(nbytes)) {
-    if (!bump_expand(void)) {
+    if (!bump_expand()) {
       return NULL;
     }
   }
