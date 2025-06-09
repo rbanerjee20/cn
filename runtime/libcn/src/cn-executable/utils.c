@@ -235,8 +235,8 @@ void cn_postcondition_leak_check(void) {
       print_error_msg_info(error_msg_info);
       // XXX: This appears to print the *hashed* pointer?
       // cn_printf(CN_LOGGING_ERROR,
-          // "Postcondition leak check failed, ownership leaked for pointer " FMT_PTR "\n",
-          // (uintptr_t)*key);
+      // "Postcondition leak check failed, ownership leaked for pointer " FMT_PTR "\n",
+      // (uintptr_t)*key);
       cn_failure(CN_FAILURE_OWNERSHIP_LEAK, POST);
       // cn_printf(CN_LOGGING_INFO, FMT_PTR_2 " (%d),", *key, *depth);
     }
@@ -254,8 +254,8 @@ void cn_loop_leak_check(void) {
       print_error_msg_info(error_msg_info);
       // XXX: This appears to print the *hashed* pointer?
       // cn_printf(CN_LOGGING_ERROR,
-          // "Loop invariant leak check failed, ownership leaked for pointer " FMT_PTR "\n",
-          // (uintptr_t)*key);
+      // "Loop invariant leak check failed, ownership leaked for pointer " FMT_PTR "\n",
+      // (uintptr_t)*key);
       cn_failure(CN_FAILURE_OWNERSHIP_LEAK, LOOP);
       // cn_printf(CN_LOGGING_INFO, FMT_PTR_2 " (%d),", *key, *depth);
     }
@@ -426,8 +426,8 @@ void c_ownership_check(char* access_kind,
 void dump_ownership_ghost_state(int stack_depth) {
   hash_table_iterator it = ht_iterator(cn_ownership_global_ghost_state);
   // cn_printf(CN_LOGGING_INFO, "ADDRESS \t\t\tCN STACK DEPTH\n")
-      // cn_printf(CN_LOGGING_INFO, "====================\n") 
-    while (ht_next(&it)) {
+  // cn_printf(CN_LOGGING_INFO, "====================\n")
+  while (ht_next(&it)) {
     int64_t* key = it.key;
     int* depth = it.value;
     if (*depth == stack_depth) {
@@ -587,12 +587,12 @@ void update_error_message_info_(
       function_name, file_name, line_number, cn_source_loc, error_msg_info);
 }
 
-void initialise_error_msg_info_(
-    const char* function_name, char* file_name, int line_number) {
-  // cn_printf(CN_LOGGING_INFO, "Initialising error message info\n");
-  error_msg_info =
-      make_error_message_info_entry(function_name, file_name, line_number, 0, NULL);
-}
+// void initialise_error_msg_info_(
+//     const char* function_name, char* file_name, int line_number) {
+//   // cn_printf(CN_LOGGING_INFO, "Initialising error message info\n");
+//   error_msg_info =
+//       make_error_message_info_entry(function_name, file_name, line_number, 0, NULL);
+// }
 
 void reset_error_msg_info(void) {
   error_msg_info = NULL;
