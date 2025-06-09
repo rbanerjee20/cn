@@ -49,7 +49,7 @@ void reset_fulminate(void);
 /* /BENNET */
 
 
-/* BENNET, INTERNAL */
+/* INTERNAL, BENNET */
 enum cn_logging_level {
   CN_LOGGING_NONE = 0,
   CN_LOGGING_ERROR = 1,
@@ -73,7 +73,7 @@ enum cn_trace_granularity get_cn_trace_granularity(void);
 enum cn_trace_granularity set_cn_trace_granularity(
     enum cn_trace_granularity new_granularity);
 
-/* /BENNET, INTERNAL */
+/* /INTERNAL, BENNET */
 
 // void cn_print_nr_owned_predicates(void);
 
