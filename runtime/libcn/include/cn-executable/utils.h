@@ -10,9 +10,8 @@
 /*
 Comment guide for David:
 
-INTERNAL = used exclusively in internal Fulminate (cn-executable) lib
-EXTERNAL = used exclusively in generated Fulminate code
-BOTH = internal + external Fulminate API
+INTERNAL = used in internal Fulminate (cn-executable) lib
+EXTERNAL = used in generated Fulminate code
 BENNET = used in Zain's test-gen (Bennet's) library
 */
 
@@ -32,7 +31,7 @@ BENNET = used in Zain's test-gen (Bennet's) library
 extern "C" {
 #endif
 
-/* BOTH */
+/* INTERNAL, EXTERNAL, BENNET */
 enum spec_mode {
   PRE = 1,
   POST = 2,
@@ -41,7 +40,7 @@ enum spec_mode {
   C_ACCESS = 5,
   NON_SPEC = 6
 };
-/* /BOTH */
+/* /INTERNAL, EXTERNAL, BENNET */
 
 
 /* Error handlers */
@@ -78,7 +77,7 @@ enum cn_trace_granularity set_cn_trace_granularity(
 
 // void cn_print_nr_owned_predicates(void);
 
-
+/* INTERNAL */
 struct cn_error_message_info {
   const char *function_name;
   char *file_name;
@@ -93,9 +92,12 @@ void initialise_error_msg_info_(
 
 #define initialise_error_msg_info()                                                      \
   initialise_error_msg_info_(__func__, __FILE__, __LINE__)
+/* /INTERNAL */
 
+/* BENNET */
 void reset_error_msg_info();
 void free_error_msg_info();
+/* /BENNET */
 
 /* TODO: Implement */
 /*struct cn_error_messages {
@@ -103,21 +105,28 @@ void free_error_msg_info();
     struct cn_error_message_info *nested_error_msg_info;
 };*/
 
+/* INTERNAL */
 void update_error_message_info_(
     const char *function_name, char *file_name, int line_number, char *cn_source_loc);
 
 void cn_pop_msg_info();
+/* /INTERNAL */
 
+/* EXTERNAL */
 #define update_cn_error_message_info(x)                                                  \
   update_error_message_info_(__func__, __FILE__, __LINE__ + 1, x)
+/* /EXTERNAL */
 
+/* INTERNAL */
 #define update_cn_error_message_info_access_check(x)                                     \
   update_error_message_info_(__func__, __FILE__, __LINE__, x)
+/* /INTERNAL */
 
 /* Wrappers for C types */
 
 /* Signed bitvectors */
 
+/* EXTERNAL, BENNET */
 typedef struct cn_bits_i8 {
   int8_t val;
 } cn_bits_i8;
@@ -170,6 +179,10 @@ typedef struct cn_alloc_id {
 
 typedef hash_table cn_map;
 
+/* /EXTERNAL, BENNET */
+
+
+/* INTERNAL */
 void initialise_ownership_ghost_state(void);
 void free_ownership_ghost_state(void);
 void initialise_ghost_stack_depth(void);
@@ -179,7 +192,10 @@ void ghost_stack_depth_decr(void);
 void cn_postcondition_leak_check(void);
 void cn_loop_put_back_ownership(void);
 void cn_loop_leak_check_and_put_back_ownership(void);
+/* /INTERNAL */
 
+
+/* EXTERNAL */
 /* malloc, free */
 void *cn_aligned_alloc(size_t align, size_t size);
 void *cn_unsafe_aligned_alloc(size_t align, size_t size);
@@ -188,12 +204,14 @@ void *cn_unsafe_malloc(size_t size);
 void *cn_calloc(size_t num, size_t size);
 void *cn_unsafe_calloc(size_t num, size_t size);
 void cn_free_sized(void *, size_t len);
+/* /EXTERNAL */
 
-void cn_print_nr_u64(int i, unsigned long u);
-void cn_print_u64(const char *str, unsigned long u);
-void dump_ownership_ghost_state(int stack_depth);
-_Bool is_mapped(void *ptr);
+// void cn_print_nr_u64(int i, unsigned long u);
+// void cn_print_u64(const char *str, unsigned long u);
+// void dump_ownership_ghost_state(int stack_depth);
+// _Bool is_mapped(void *ptr);
 
+/* INTERNAL, BENNET */
 /* cn_failure callbacks */
 enum cn_failure_mode {
   CN_FAILURE_ASSERT = 1,
@@ -206,11 +224,19 @@ typedef void (*cn_failure_callback)(enum cn_failure_mode, enum spec_mode);
 void set_cn_failure_cb(cn_failure_callback callback);
 void reset_cn_failure_cb(void);
 void cn_failure(enum cn_failure_mode failure_mode, enum spec_mode spec_mode);
+/* /INTERNAL, BENNET */
 
 /* Conversion functions */
 
+/* INTERNAL, EXTERNAL */
 cn_bool *convert_to_cn_bool(_Bool b);
+/* /INTERNAL, EXTERNAL */
+
+/* INTERNAL, EXTERNAL, BENNET */
 _Bool convert_from_cn_bool(cn_bool *b);
+/* /INTERNAL, EXTERNAL, BENNET */
+
+/* EXTERNAL */
 void cn_assert(cn_bool *cn_b, enum spec_mode spec_mode);
 cn_bool *cn_bool_and(cn_bool *b1, cn_bool *b2);
 cn_bool *cn_bool_or(cn_bool *b1, cn_bool *b2);
@@ -218,6 +244,7 @@ cn_bool *cn_bool_not(cn_bool *b);
 cn_bool *cn_bool_implies(cn_bool *b1, cn_bool *b2);
 cn_bool *cn_bool_equality(cn_bool *b1, cn_bool *b2);
 void *cn_ite(cn_bool *b, void *e1, void *e2);
+/* /EXTERNAL */
 
 cn_map *map_create(void);
 cn_map *cn_map_set(cn_map *m, cn_integer *key, void *value);
