@@ -1,0 +1,5 @@
+[
+	{ "directory": ".",
+	"command": "cc -I/Users/rinibanerjee/.opam/4.14.0/lib/cn/runtime/include/ void_star_arg.exec.c",
+	"file": "void_star_arg.exec.c" }
+]

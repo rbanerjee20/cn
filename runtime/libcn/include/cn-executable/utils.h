@@ -7,19 +7,32 @@
 #include "hash_table.h"
 #include "rts_deps.h"
 
-#define cn_printf(level, ...)                                                            \
-  if (get_cn_logging_level() >= level) {                                                 \
-    printf(__VA_ARGS__);                                                                 \
-  }
+/*
+Comment guide for David:
 
+INTERNAL = used exclusively in internal Fulminate (cn-executable) lib
+EXTERNAL = used exclusively in generated Fulminate code
+BOTH = internal + external Fulminate API
+BENNET = used in Zain's test-gen (Bennet's) library
+*/
+
+// #define cn_printf(level, ...)                                                            \
+//   if (get_cn_logging_level() >= level) {                                                 \
+//     printf(__VA_ARGS__);                                                                 \
+//   }
+
+/* BOTH */
 // XXX: things used by injected code
 #define true  1
 #define false 0
+/* /BOTH */
 
+// Needed for Bennet
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* BOTH */
 enum spec_mode {
   PRE = 1,
   POST = 2,
@@ -28,10 +41,16 @@ enum spec_mode {
   C_ACCESS = 5,
   NON_SPEC = 6
 };
+/* /BOTH */
+
 
 /* Error handlers */
+/* BENNET */
 void reset_fulminate(void);
+/* /BENNET */
 
+
+/* BENNET, INTERNAL */
 enum cn_logging_level {
   CN_LOGGING_NONE = 0,
   CN_LOGGING_ERROR = 1,
@@ -55,7 +74,10 @@ enum cn_trace_granularity get_cn_trace_granularity(void);
 enum cn_trace_granularity set_cn_trace_granularity(
     enum cn_trace_granularity new_granularity);
 
-void cn_print_nr_owned_predicates(void);
+/* /BENNET, INTERNAL */
+
+// void cn_print_nr_owned_predicates(void);
+
 
 struct cn_error_message_info {
   const char *function_name;

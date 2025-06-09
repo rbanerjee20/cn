@@ -75,9 +75,9 @@ bool bump_expand(void) {
 
 void* bump_by(size_t nbytes) {
   if (nbytes > BUMP_BLOCK_SIZE) {
-    cn_printf(CN_LOGGING_INFO,
-        "Attempted to bump allocate larger than maximum allocation size %d.\n",
-        BUMP_BLOCK_SIZE);
+    // cn_printf(CN_LOGGING_INFO,
+        // "Attempted to bump allocate larger than maximum allocation size %d.\n",
+        // BUMP_BLOCK_SIZE);
     cn_failure(CN_FAILURE_ALLOC, NON_SPEC);
     return 0;
   }

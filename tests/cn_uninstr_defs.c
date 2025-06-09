@@ -19,7 +19,7 @@ void cn_print_nr_u64(int x, unsigned long y) {
 void cn_free_sized(void* malloced_ptr, size_t size) {
     return;
 }
-void cn_print_nr_owned_predicates(void) {
-    return;
-}
+// void cn_print_nr_owned_predicates(void) {
+//     return;
+// }
 #endif
