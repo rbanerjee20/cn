@@ -42,12 +42,10 @@ enum spec_mode {
 };
 /* /INTERNAL, EXTERNAL, BENNET */
 
-
 /* Error handlers */
 /* BENNET */
 void reset_fulminate(void);
 /* /BENNET */
-
 
 /* INTERNAL, BENNET */
 enum cn_logging_level {
@@ -181,7 +179,6 @@ typedef hash_table cn_map;
 
 /* /EXTERNAL, BENNET */
 
-
 /* INTERNAL */
 void initialise_ownership_ghost_state(void);
 void free_ownership_ghost_state(void);
@@ -193,7 +190,6 @@ void cn_postcondition_leak_check(void);
 void cn_loop_put_back_ownership(void);
 void cn_loop_leak_check_and_put_back_ownership(void);
 /* /INTERNAL */
-
 
 /* EXTERNAL */
 /* malloc, free */
@@ -265,20 +261,18 @@ cn_map *cn_map_deep_copy(cn_map *m1);
 cn_bool *cn_map_equality(
     cn_map *m1, cn_map *m2, cn_bool *(value_equality_fun)(void *, void *));
 
-
 #define convert_to_cn_map(c_ptr, cntype_conversion_fn, num_elements)                     \
-({                                                                                     \
-  cn_map *m = map_create();                                                            \
-  for (int i = 0; i < num_elements; i++) {                                             \
-    cn_map_set(m, convert_to_cn_integer(i), cntype_conversion_fn(c_ptr[i]));           \
-  }                                                                                    \
-  m;                                                                                   \
-})
+  ({                                                                                     \
+    cn_map *m = map_create();                                                            \
+    for (int i = 0; i < num_elements; i++) {                                             \
+      cn_map_set(m, convert_to_cn_integer(i), cntype_conversion_fn(c_ptr[i]));           \
+    }                                                                                    \
+    m;                                                                                   \
+  })
 #define convert_from_cn_map(arr, m, cntype, num_elements)                                \
-for (int i = 0; i < num_elements; i++) {                                               \
-  arr[i] = convert_from_##cntype(cn_map_get_##cntype(m, convert_to_cn_integer(i)));    \
-}
-
+  for (int i = 0; i < num_elements; i++) {                                               \
+    arr[i] = convert_from_##cntype(cn_map_get_##cntype(m, convert_to_cn_integer(i)));    \
+  }
 
 #define cn_pointer_deref(CN_PTR, CTYPE) *((CTYPE *)CN_PTR->ptr)
 /* /EXTERNAL */
@@ -633,7 +627,6 @@ void c_ownership_check(
     char *access_kind, void *generic_c_ptr, int offset, signed long expected_stack_depth);
 /* /INTERNAL, EXTERNAL */
 
-
 // Unused
 #define c_concat_with_mapping_stat(STAT, CTYPE, VAR_NAME, GHOST_STATE, STACK_DEPTH)      \
   STAT;                                                                                  \
@@ -664,38 +657,38 @@ static inline void cn_postfix(void *ptr, size_t size) {
 
 /* EXTERNAL */
 #define CN_LOAD(LV)                                                                      \
-({                                                                                     \
-  typeof(LV) *__tmp = &(LV);                                                           \
-  update_cn_error_message_info_access_check(0);                                        \
-  c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
-  cn_load(__tmp, sizeof(typeof(LV)));                                                  \
-  *__tmp;                                                                              \
-})
+  ({                                                                                     \
+    typeof(LV) *__tmp = &(LV);                                                           \
+    update_cn_error_message_info_access_check(0);                                        \
+    c_ownership_check("Load", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());          \
+    cn_load(__tmp, sizeof(typeof(LV)));                                                  \
+    *__tmp;                                                                              \
+  })
 
 #define CN_STORE_OP(LV, op, X)                                                           \
-({                                                                                     \
-  typeof(LV) *__tmp;                                                                   \
-  __tmp = &(LV);                                                                       \
-  update_cn_error_message_info_access_check(0);                                        \
-  c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
-  cn_store(__tmp, sizeof(typeof(LV)));                                                 \
-  *__tmp op## = (X);                                                                   \
-})
+  ({                                                                                     \
+    typeof(LV) *__tmp;                                                                   \
+    __tmp = &(LV);                                                                       \
+    update_cn_error_message_info_access_check(0);                                        \
+    c_ownership_check("Store", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());         \
+    cn_store(__tmp, sizeof(typeof(LV)));                                                 \
+    *__tmp op## = (X);                                                                   \
+  })
 
 #define CN_STORE(LV, X) CN_STORE_OP(LV, , X)
 
 #define CN_POSTFIX(LV, OP)                                                               \
-({                                                                                     \
-  typeof(LV) *__tmp;                                                                   \
-  __tmp = &(LV);                                                                       \
-  update_cn_error_message_info_access_check(0);                                        \
-  c_ownership_check(                                                                   \
-    "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
+  ({                                                                                     \
+    typeof(LV) *__tmp;                                                                   \
+    __tmp = &(LV);                                                                       \
+    update_cn_error_message_info_access_check(0);                                        \
+    c_ownership_check(                                                                   \
+        "Postfix operation", __tmp, sizeof(typeof(LV)), get_cn_stack_depth());           \
     cn_postfix(__tmp, sizeof(typeof(LV)));                                               \
     (*__tmp) OP;                                                                         \
   })
 /* /EXTERNAL */
-  
+
 #ifdef __cplusplus
 }
 #endif
