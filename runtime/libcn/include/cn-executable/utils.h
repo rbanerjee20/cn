@@ -179,7 +179,7 @@ typedef hash_table cn_map;
 
 /* /EXTERNAL, BENNET */
 
-/* INTERNAL */
+/* EXTERNAL */
 void initialise_ownership_ghost_state(void);
 void free_ownership_ghost_state(void);
 void initialise_ghost_stack_depth(void);
@@ -189,9 +189,7 @@ void ghost_stack_depth_decr(void);
 void cn_postcondition_leak_check(void);
 void cn_loop_put_back_ownership(void);
 void cn_loop_leak_check_and_put_back_ownership(void);
-/* /INTERNAL */
 
-/* EXTERNAL */
 /* malloc, free */
 void *cn_aligned_alloc(size_t align, size_t size);
 void *cn_unsafe_aligned_alloc(size_t align, size_t size);
