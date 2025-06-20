@@ -13,7 +13,11 @@ extern "C" {
 
 void* cn_bump_aligned_alloc(size_t alignment, size_t nbytes);
 
-void* cn_bump_malloc(size_t nbytes);
+void* _cn_bump_malloc(size_t nbytes, const char *function_name, char *file_name, int line_number);
+
+#define cn_bump_malloc(nbytes) \
+ _cn_bump_malloc(nbytes, __func__, __FILE__, __LINE__)
+
 
 void* cn_bump_calloc(size_t count, size_t size);
 

@@ -253,6 +253,7 @@ let main
              can't include them here, they'll clash in essentially unavoidable
              ways with the stuff we already included and processed *)
           "#include <cn-executable/cerb_types.h>\n";
+          "#include <stdio.h>";
           (* TODO necessary because of the types in the struct decls. proper
              handling would be to hoist all definitions and toposort them *)
           (* TODO actually instead of *hoisting* types we can *lower* structs

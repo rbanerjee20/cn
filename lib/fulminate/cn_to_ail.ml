@@ -4044,15 +4044,44 @@ let cn_to_ail_pre_post
         in
         [ cn_stack_depth_incr_stat_ ])
     in
+    (* printf("Function: %s\n", __FUNCTION__); *)
+    let print_fn_arg0 = A.(AilEident (Sym.fresh "stdout")) in
+    let print_fn_arg1_enter =
+      A.(AilEstr (None, [ (Cerb_location.unknown, [ "Entering function: %s\\n" ]) ]))
+    in
+    let print_fn_arg1_exit =
+      A.(AilEstr (None, [ (Cerb_location.unknown, [ "Leaving function: %s\\n" ]) ]))
+    in
+    let print_fn_arg2 = A.(AilEident (Sym.fresh "__FUNCTION__")) in
+    let printf_fn_ident = A.(AilEident (Sym.fresh "fprintf")) in
+    let enter_print_fn_stat =
+      A.AilSexpr
+        (mk_expr
+           (AilEcall
+              ( mk_expr printf_fn_ident,
+                List.map mk_expr [ print_fn_arg0; print_fn_arg1_enter; print_fn_arg2 ] )))
+    in
+    let exit_print_fn_stat =
+      A.AilSexpr
+        (mk_expr
+           (AilEcall
+              ( mk_expr printf_fn_ident,
+                List.map mk_expr [ print_fn_arg0; print_fn_arg1_exit; print_fn_arg2 ] )))
+    in
     let bump_alloc_binding, bump_alloc_start_stat_, bump_alloc_end_stat_ =
       gen_bump_alloc_bs_and_ss ()
     in
     let ail_executable_spec' =
       prepend_to_precondition
         ail_executable_spec
-        ([ bump_alloc_binding ], bump_alloc_start_stat_ :: ownership_stats_)
+        ( [ bump_alloc_binding ],
+          enter_print_fn_stat :: bump_alloc_start_stat_ :: ownership_stats_ )
     in
-    append_to_postcondition ail_executable_spec' ([], [ bump_alloc_end_stat_ ])
+    append_to_postcondition
+      ail_executable_spec'
+      ([], [ bump_alloc_end_stat_; exit_print_fn_stat ])
+    (* let b2, s2 = ail_executable_spec.post in
+    { ail_executable_spec with post = (b2, s2 @ [ exit_print_fn_stat ]) } *)
   | None -> empty_ail_executable_spec
 
 

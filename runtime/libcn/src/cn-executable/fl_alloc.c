@@ -400,6 +400,7 @@ void* cn_fl_aligned_alloc(size_t alignment, size_t size) {
 }
 
 void* cn_fl_malloc(size_t size) {
+  cn_fl_print();
   return cn_fl_aligned_alloc(alignof(max_align_t), size);
 }
 
