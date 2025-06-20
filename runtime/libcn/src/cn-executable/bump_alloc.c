@@ -124,11 +124,12 @@ void* cn_bump_aligned_alloc(size_t alignment, size_t nbytes) {
 
 void* _cn_bump_malloc(size_t nbytes, const char *function_name, char *file_name, int line_number) {
   static unsigned long count = 0;
+  int n = 1000000;
   // if (count == 2000000) {
   //   fprintf(stdout, "Reached %lu allocations - aborting!\n", count);
   //   exit(0);
   // }
-  if (count % 10000 == 0) {
+  if (count % n == 0) {
     fprintf(stdout,
       "Count, %lu, Block, %" PRIu16 ", Total alloced, %lu, This block, %lu, This allocation, %lu, ",
       count,
@@ -138,7 +139,7 @@ void* _cn_bump_malloc(size_t nbytes, const char *function_name, char *file_name,
       nbytes);
   }
   void * ret = cn_bump_aligned_alloc(alignof(max_align_t), nbytes);
-  if (count % 10000 == 0) {
+  if (count % n == 0) {
     fprintf(stdout, "Address, %p, ", ret);
     fprintf(stdout, 
       "Function, %s, File, %s, Line number, %d\n",
