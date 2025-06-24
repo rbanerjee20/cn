@@ -13,8 +13,10 @@
   }
 
 // XXX: things used by injected code
+#if __STDC_VERSION__ < 202311L
 #define true  1
 #define false 0
+#endif
 
 #ifdef __cplusplus
 extern "C" {
