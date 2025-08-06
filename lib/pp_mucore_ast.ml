@@ -242,7 +242,8 @@ module PP = struct
 
   let dtree_of_label l def =
     match def with
-    | Return loc -> Dleaf (!^"return" ^^^ Cerb_location.pp_location ~clever:false loc)
+    | Dummy loc | Return loc ->
+      Dleaf (!^"return" ^^^ Cerb_location.pp_location ~clever:false loc)
     | Label (loc, args_and_body, _, _, _) ->
       Dnode
         ( pp_symbol l ^^^ Cerb_location.pp_location ~clever:false loc,

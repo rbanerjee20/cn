@@ -1292,6 +1292,12 @@ let normalise_label
   match label with
   | CF.Milicore.Mi_Return loc -> return (Mu.Return loc)
   | Mi_Label (loc, lt, label_args, label_body, annots) ->
+    let handle_loop_label loc error_msg =
+      if !Sym.executable_spec_enabled then
+        return (Mu.Dummy loc)
+      else
+        assert_error loc error_msg
+    in
     (match CF.Annot.get_label_annot annots with
      | Some (LAloop loop_id) ->
        let@ desugared_inv, cn_desugaring_state, loop_info =
@@ -1346,15 +1352,15 @@ let normalise_label
      (* | Some (LAloop_body _loop_id) -> *)
      (*    assert_error loc !^"body label has not been inlined" *)
      | Some (LAloop_continue _loop_id) ->
-       assert_error loc !^"continue label has not been inlined"
+       handle_loop_label loc !^"continue label has not been inlined"
      | Some (LAloop_break _loop_id) ->
-       assert_error loc !^"break label has not been inlined"
-     | Some LAreturn -> assert_error loc !^"return label has not been inlined"
-     | Some LAswitch -> assert_error loc !^"switch labels"
-     | Some LAcase -> assert_error loc !^"case label has not been inlined"
-     | Some LAdefault -> assert_error loc !^"default label has not been inlined"
+       handle_loop_label loc !^"break label has not been inlined"
+     | Some LAreturn -> handle_loop_label loc !^"return label has not been inlined"
+     | Some LAswitch -> handle_loop_label loc !^"switch labels"
+     | Some LAcase -> handle_loop_label loc !^"case label has not been inlined"
+     | Some LAdefault -> handle_loop_label loc !^"default label has not been inlined"
      | Some LAactual_label -> failwith "todo: associate invariant with label or inline"
-     | None -> assert_error loc !^"non-loop labels")
+     | None -> handle_loop_label loc !^"non-loop labels")
 
 
 module Spec = struct

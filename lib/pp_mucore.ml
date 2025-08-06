@@ -715,7 +715,7 @@ module Make (Config : CONFIG) = struct
                                 (fun sym def acc ->
                                    acc
                                    ^^ (match def with
-                                       | Return _ ->
+                                       | Dummy _ | Return _ ->
                                          Pp.break 1 ^^ !^"return label" ^^^ pp_symbol sym
                                        | Label
                                            ( _loc,

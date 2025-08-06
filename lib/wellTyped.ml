@@ -2295,7 +2295,7 @@ module WProc = struct
       (fun sym def label_context ->
          let lt, kind, loc =
            match def with
-           | Return loc ->
+           | Dummy loc | Return loc ->
              (AT.of_rt function_rt (LAT.I False.False), CF.Annot.LAreturn, loc)
            | Label (loc, label_args_and_body, annots, _parsed_spec, _loop_info) ->
              let lt = WLabel.typ label_args_and_body in
@@ -2321,7 +2321,7 @@ module WProc = struct
            PmapM.mapM
              (fun _sym def ->
                 match def with
-                | Return loc -> return (Return loc)
+                | Dummy loc | Return loc -> return (Return loc)
                 | Label (loc, label_args_and_body, annots, parsed_spec, loop_info) ->
                   let@ label_args_and_body =
                     pure
