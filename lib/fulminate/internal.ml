@@ -391,11 +391,12 @@ let generate_ghost_call_site_glob () =
 
 
 let generate_c_struct_strs c_structs =
-  "\n/* ORIGINAL C STRUCTS */\n\n" ^ generate_str_from_ail_structs c_structs
+  "\n/* ORIGINAL C STRUCTS AND UNIONS */\n\n" ^ generate_str_from_ail_structs c_structs
 
 
 let generate_c_struct_decl_strs c_structs =
-  "/* ORIGINAL C STRUCTS DECLARATIONS */\n" :: List.map generate_struct_decl_str c_structs
+  "/* ORIGINAL C STRUCT AND UNION DECLARATIONS */\n"
+  :: List.map generate_struct_decl_str c_structs
 
 
 let generate_cn_versions_of_structs c_structs =
@@ -623,6 +624,10 @@ let generate_global_assignments
 let generate_tag_definition_injs (tag_defs : CF.AilSyntax.sigma_tag_definition list) =
   List.map
     (fun (sym, (loc, _, tag_def)) ->
+       Printf.printf
+         "tag definition %s at %s\n"
+         (Sym.pp_string sym)
+         (Cerb_location.simple_location loc);
        let tag_ctype_str =
          match tag_def with CF.Ctype.StructDef _ -> "struct" | UnionDef _ -> "union"
        in
