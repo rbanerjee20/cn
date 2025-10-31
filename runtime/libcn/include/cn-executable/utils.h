@@ -545,11 +545,13 @@ CN_GEN_MAP_GET(cn_map)
 
 GEN_ALL_STACK(cn_source_location, char*);
 
-typedef struct ownership_ghost_info {
-  int depth;
-  cn_source_location_stack*
-      source_loc_stack;  // set to null if ownership_stack_mode is disabled
-} ownership_ghost_info;
+// typedef struct ownership_ghost_info {
+//   int depth;
+//   cn_source_location_stack*
+//       source_loc_stack;  // set to null if ownership_stack_mode is disabled
+// } ownership_ghost_info;
+
+typedef int ownership_ghost_info;
 
 enum STACK_OP {
   PUSH,

@@ -140,26 +140,26 @@ void print_error_msg_info(struct cn_error_message_info* info) {
   }
 }
 
-void print_owned_calls_stack(ownership_ghost_info* entry_maybe) {
-  if (entry_maybe && entry_maybe->source_loc_stack) {
-    cn_printf(CN_LOGGING_ERROR, "Owned locations stack:\n");
-    char* popped_elem =
-        cn_source_location_stack_pop(entry_maybe->source_loc_stack, &fulm_default_alloc);
-    while (popped_elem) {
-      cn_printf(CN_LOGGING_ERROR, "%s\n", popped_elem);
-      cn_printf(CN_LOGGING_ERROR, "==========================\n");
-      popped_elem = cn_source_location_stack_pop(
-          entry_maybe->source_loc_stack, &fulm_default_alloc);
-    }
-  }
-}
+// void print_owned_calls_stack(ownership_ghost_info* entry_maybe) {
+// if (entry_maybe && entry_maybe->source_loc_stack) {
+//   cn_printf(CN_LOGGING_ERROR, "Owned locations stack:\n");
+//   char* popped_elem =
+//       cn_source_location_stack_pop(entry_maybe->source_loc_stack, &fulm_default_alloc);
+//   while (popped_elem) {
+//     cn_printf(CN_LOGGING_ERROR, "%s\n", popped_elem);
+//     cn_printf(CN_LOGGING_ERROR, "==========================\n");
+//     popped_elem = cn_source_location_stack_pop(
+//         entry_maybe->source_loc_stack, &fulm_default_alloc);
+//   }
+// }
+// }
 
-ownership_ghost_info* create_ownership_ghost_state_entry(int depth) {
-  ownership_ghost_info* ghost_state_entry =
-      fulm_malloc(sizeof(ownership_ghost_info), &fulm_default_alloc);
-  ghost_state_entry->depth = depth;
-  return ghost_state_entry;
-}
+// ownership_ghost_info* create_ownership_ghost_state_entry(int depth) {
+//   ownership_ghost_info* ghost_state_entry =
+//       fulm_malloc(sizeof(ownership_ghost_info), &fulm_default_alloc);
+//   ghost_state_entry->depth = depth;
+//   return ghost_state_entry;
+// }
 
 cn_bool* convert_to_cn_bool(_Bool b) {
   cn_bool* res = cn_bump_malloc(sizeof(cn_bool));
@@ -297,11 +297,11 @@ void cn_postcondition_leak_check(void) {
   // cn_printf(CN_LOGGING_INFO, "CN pointers leaked at (%ld) stack-depth: ", cn_stack_depth);
   while (ht_next(&it)) {
     int64_t* key = it.key;
-    ownership_ghost_info* info = (ownership_ghost_info*)it.value;
-    if (info->depth != WILDCARD_DEPTH && info->depth > cn_stack_depth) {
-      if (ownership_stack_mode) {
-        print_owned_calls_stack(info);
-      }
+    ownership_ghost_info* depth = (ownership_ghost_info*)it.value;
+    if (*depth != WILDCARD_DEPTH && *depth > cn_stack_depth) {
+      // if (ownership_stack_mode) {
+      //   print_owned_calls_stack(info);
+      // }
       print_error_msg_info(global_error_msg_info);
       // XXX: This appears to print the *hashed* pointer?
       cn_printf(CN_LOGGING_ERROR,
@@ -318,12 +318,12 @@ void cn_loop_leak_check(void) {
 
   while (ht_next(&it)) {
     int64_t* key = it.key;
-    ownership_ghost_info* info = (ownership_ghost_info*)it.value;
+    ownership_ghost_info* depth = (ownership_ghost_info*)it.value;
     /* Everything mapped to the function stack depth should have been bumped up by calls to Owned in invariant */
-    if (info->depth != WILDCARD_DEPTH && info->depth == cn_stack_depth) {
-      if (ownership_stack_mode) {
-        print_owned_calls_stack(info);
-      }
+    if (*depth != WILDCARD_DEPTH && *depth == cn_stack_depth) {
+      // if (ownership_stack_mode) {
+      //   print_owned_calls_stack(info);
+      // }
       print_error_msg_info(global_error_msg_info);
       // XXX: This appears to print the *hashed* pointer?
       cn_printf(CN_LOGGING_ERROR,
@@ -382,10 +382,10 @@ ownership_ghost_info* ownership_ghost_state_get(int64_t address) {
   return (ownership_ghost_info*)ht_get(cn_ownership_global_ghost_state, &address);
 }
 
-int ownership_ghost_state_get_depth(int64_t address) {
-  ownership_ghost_info* entry_maybe = ownership_ghost_state_get(address);
-  return entry_maybe ? entry_maybe->depth : UNMAPPED_VAL;
-}
+// int ownership_ghost_state_get_depth(int64_t address) {
+//   ownership_ghost_info* entry_maybe = ownership_ghost_state_get(address);
+//   return entry_maybe ? entry_maybe->depth : UNMAPPED_VAL;
+// }
 
 void ownership_ghost_state_set(int64_t address,
     size_t size,
@@ -397,31 +397,31 @@ void ownership_ghost_state_set(int64_t address,
         (ownership_ghost_info*)ht_get(cn_ownership_global_ghost_state, &k);
     if (!entry) {
       entry = fulm_malloc(sizeof(ownership_ghost_info), &fulm_default_alloc);
-      if (ownership_stack_mode) {
-        entry->source_loc_stack = cn_source_location_stack_init(&fulm_default_alloc);
-      } else {
-        entry->source_loc_stack = 0;
-      }
+      // if (ownership_stack_mode) {
+      //   entry->source_loc_stack = cn_source_location_stack_init(&fulm_default_alloc);
+      // } else {
+      //   entry->source_loc_stack = 0;
+      // }
     }
-    entry->depth = stack_depth_val;
-    if (ownership_stack_mode) {
-      switch (op) {
-        case NO_OP:
-          break;
-        case PUSH: {
-          if (error_msg_info) {
-            cn_source_location_stack_push(entry->source_loc_stack,
-                error_msg_info->cn_source_loc,
-                &fulm_default_alloc);
-          }
-          break;
-        }
-        case POP: {
-          cn_source_location_stack_pop(entry->source_loc_stack, &fulm_default_alloc);
-          break;
-        }
-      }
-    }
+    *entry = stack_depth_val;
+    // if (ownership_stack_mode) {
+    //   switch (op) {
+    //     case NO_OP:
+    //       break;
+    //     case PUSH: {
+    //       if (error_msg_info) {
+    //         cn_source_location_stack_push(entry->source_loc_stack,
+    //             error_msg_info->cn_source_loc,
+    //             &fulm_default_alloc);
+    //       }
+    //       break;
+    //     }
+    //     case POP: {
+    //       cn_source_location_stack_pop(entry->source_loc_stack, &fulm_default_alloc);
+    //       break;
+    //     }
+    //   }
+    // }
     ht_set(cn_ownership_global_ghost_state, &k, entry);
   }
 }
@@ -435,8 +435,8 @@ _Bool is_wildcard(void* generic_c_ptr, int offset) {
   // cn_printf(CN_LOGGING_INFO, "C: Checking ownership for [ " FMT_PTR " .. " FMT_PTR " ] -- ", generic_c_ptr, generic_c_ptr + offset);
   for (int i = 0; i < offset; i++) {
     address_key = (uintptr_t)generic_c_ptr + i;
-    int depth = ownership_ghost_state_get_depth(address_key);
-    if (depth != WILDCARD_DEPTH) {
+    ownership_ghost_info* depth = ownership_ghost_state_get(address_key);
+    if (*depth != WILDCARD_DEPTH) {
       return 0;
     }
   }
@@ -549,11 +549,11 @@ void c_ownership_check(char* access_kind,
   for (int i = 0; i < offset; i++) {
     ownership_ghost_info* entry_maybe =
         ownership_ghost_state_get((uintptr_t)generic_c_ptr + i);
-    int curr_depth = entry_maybe ? entry_maybe->depth : UNMAPPED_VAL;
+    int curr_depth = entry_maybe ? *entry_maybe : UNMAPPED_VAL;
     if (curr_depth != WILDCARD_DEPTH && curr_depth != expected_stack_depth) {
-      if (ownership_stack_mode) {
-        print_owned_calls_stack(entry_maybe);
-      }
+      // if (ownership_stack_mode) {
+      //   print_owned_calls_stack(entry_maybe);
+      // }
       print_error_msg_info(global_error_msg_info);
       cn_printf(CN_LOGGING_ERROR, "%s failed.\n", access_kind);
       if (curr_depth == UNMAPPED_VAL) {
