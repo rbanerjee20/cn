@@ -566,6 +566,8 @@ void ownership_ghost_state_set(int64_t address,
 void ownership_ghost_state_remove(int64_t address, size_t size);
 
 /* CN ownership checking */
+void fulminate_assume_ownership(
+    void* generic_c_ptr, unsigned long size, char* fun, _Bool wildcard);
 void cn_assume_ownership(void* generic_c_ptr, unsigned long size, char* fun);
 void cn_get_or_put_ownership(enum spec_mode spec_mode,
     void* generic_c_ptr,
