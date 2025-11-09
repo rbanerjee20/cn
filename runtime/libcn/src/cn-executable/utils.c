@@ -476,7 +476,7 @@ void cn_get_ownership(void* generic_c_ptr, size_t size) {
   /* Used for precondition and loop invariant taking/getting of ownership */
   uintptr_t ptr = (uintptr_t)generic_c_ptr;
   for (int i = 0; i < (int)size; i++) {
-    bool is_wildcard =
+    _Bool is_wildcard =
         c_ownership_check("Precondition ownership check", ptr + i, cn_stack_depth - 1);
     if (!is_wildcard) {
       c_add_to_ghost_state_internal(
@@ -489,7 +489,8 @@ void cn_loop_get_ownership(
     void* generic_c_ptr, size_t size, struct loop_ownership* loop_ownership) {
   uintptr_t ptr = (uintptr_t)generic_c_ptr;
   for (int i = 0; i < (int)size; i++) {
-    bool is_wildcard = c_ownership_check("Loop ownership check", ptr + i, cn_stack_depth);
+    _Bool is_wildcard =
+        c_ownership_check("Loop ownership check", ptr + i, cn_stack_depth);
     if (!is_wildcard) {
       c_add_to_ghost_state_internal(
           ptr + i, 1, cn_stack_depth - 1, global_error_msg_info, PUSH);
@@ -512,7 +513,7 @@ void cn_put_ownership(void* generic_c_ptr, size_t size) {
   //// print_error_msg_info();
   uintptr_t ptr = (uintptr_t)generic_c_ptr;
   for (int i = 0; i < (int)size; i++) {
-    bool is_wildcard =
+    _Bool is_wildcard =
         c_ownership_check("Postcondition ownership check", ptr + i, cn_stack_depth);
     if (!is_wildcard) {
       c_add_to_ghost_state_internal(
@@ -561,7 +562,7 @@ void cn_get_or_put_ownership(enum spec_mode spec_mode,
   }
 }
 
-bool c_ownership_check(
+_Bool c_ownership_check(
     char* access_kind, uintptr_t generic_c_ptr, signed long expected_stack_depth) {
   // cn_printf(CN_LOGGING_INFO, "C: Checking ownership for [ " FMT_PTR " .. " FMT_PTR " ] -- ", generic_c_ptr, generic_c_ptr + offset);
   ownership_ghost_info* entry_maybe = ownership_ghost_state_get(generic_c_ptr);
@@ -890,7 +891,7 @@ void cn_free_sized(void* malloced_ptr, size_t size) {
   if (malloced_ptr != NULL) {
     uintptr_t ptr = (uintptr_t)malloced_ptr;
     for (int i = 0; i < (int)size; i++) {
-      bool is_wildcard = c_ownership_check("Free", ptr + i, cn_stack_depth);
+      _Bool is_wildcard = c_ownership_check("Free", ptr + i, cn_stack_depth);
       if (!is_wildcard) {
         c_remove_from_ghost_state_internal(ptr + i, 1);
       }

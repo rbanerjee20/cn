@@ -571,7 +571,7 @@ void cn_get_or_put_ownership(enum spec_mode spec_mode,
 /* C ownership checking */
 void c_add_to_ghost_state(void* ptr_to_local, size_t size, signed long stack_depth);
 void c_remove_from_ghost_state(void* ptr_to_local, size_t size);
-bool c_ownership_check(
+_Bool c_ownership_check(
     char* access_kind, uintptr_t generic_c_ptr, signed long expected_stack_depth);
 
 /* Ghost arguments */
