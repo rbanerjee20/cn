@@ -11,7 +11,7 @@
    (glob_files src/cn-testing/*.c)))
  (action
   (progn
-   (run cc -Iinclude/ -c -g %{src})
+   (run cc -O2 -Iinclude/ -c -g %{src})
    (run
     ar
     -rcs
