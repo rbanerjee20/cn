@@ -19,6 +19,8 @@ static size_t bump_blocks_capacity;
 static uint16_t bump_curr_block;
 static char* bump_curr;
 
+#define ALIGN(p, t) ((p + (alignof(t) - 1)) & (~(alignof(t) - 1)))
+
 #ifdef CN_DEBUG_PRINTING
 void cn_bump_fprint(FILE* file) {
   fprintf(file,
@@ -143,32 +145,13 @@ void* bump_by(size_t nbytes) {
 }
 
 void* cn_bump_aligned_alloc(size_t alignment, size_t nbytes) {
-  assert((alignment > 0) && ((alignment & (alignment - 1)) == 0));
-
   if (nbytes == 0) {
     return NULL;
   }
 
+  nbytes = ALIGN(nbytes, unsigned long long);
+
   cn_bump_init();
-
-  if ((uintptr_t)bump_curr % alignment != 0) {
-    size_t padding = (alignment - (uintptr_t)bump_curr % alignment) % alignment;
-    if (!bump_can_fit(padding + nbytes)) {
-      if (!bump_expand()) {
-        cn_failure(CN_FAILURE_FULM_ALLOC, NON_SPEC);
-        return NULL;
-      }
-      padding = (alignment - (uintptr_t)bump_curr % alignment) % alignment;
-    }
-
-    void* prev = bump_curr;
-    void* res = bump_by(padding);
-    if (res == NULL) {
-      bump_curr = prev;
-      cn_failure(CN_FAILURE_FULM_ALLOC, NON_SPEC);
-      return NULL;
-    }
-  }
 
   void* prev = bump_curr;
   void* res = bump_by(nbytes);

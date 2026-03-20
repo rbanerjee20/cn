@@ -244,7 +244,7 @@ cn_map* map_create(void) {
 void initialise_ownership_ghost_state(void) {
   nr_owned_predicates = 0;
   cn_ownership_global_ghost_state =
-      rmap_create(4, fulm_default_alloc.malloc, fulm_default_alloc.free);
+      rmap_create(2, fulm_default_alloc.malloc, fulm_default_alloc.free);
 }
 
 void free_ownership_ghost_state(void) {
