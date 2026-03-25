@@ -267,7 +267,7 @@ if args.buddy_path and not args.iterate:
 num_elements_list=[]
 
 for f in cn_test_files:
-    input_basename = f.split('.')[0]
+    input_basename = ".".join(f.split('.')[:-1])
     if args.iterate:
         for i in range(1, int(args.iterate)):
             num_elements = 2**i
@@ -330,7 +330,7 @@ if args.csv_clean:
         copied_cols = ['cn_filename', 'num_elements']
         if args.track_owned:
             copied_cols += ['nr_owned_predicates']
-        copied_cols += ['uninstr_executable_time', 'uninstr_executable_space', 'executable_time_difference', 'executable_space_difference']
+        copied_cols += ['uninstr_median_executable_time', 'uninstr_median_executable_space', 'executable_time_difference', 'executable_space_difference']
         iterated_clean_df = full_df[copied_cols].copy()
         iterated_clean_df['log2_executable_time_difference'] = np.log2(abs(iterated_clean_df['executable_time_difference']))
         iterated_clean_df['log2_executable_space_difference'] = np.log2(abs(iterated_clean_df['executable_space_difference']))
@@ -339,10 +339,10 @@ if args.csv_clean:
         clean_stats_dict = {
             'mean_generation_time': [full_df.loc[:, 'instr_generation_time'].mean()],
             'std_generation_time': [full_df['instr_generation_time'].std()],
-            'mean_uninstr_exec_time': [full_df.loc[:, 'uninstr_executable_time'].mean()],
-            'std_uninstr_exec_time': [full_df['uninstr_executable_time'].std()],
-            'mean_uninstr_exec_space': [full_df.loc[:, 'uninstr_executable_space'].mean()],
-            'std_uninstr_exec_space': [full_df['uninstr_executable_space'].std()],
+            'mean_uninstr_exec_time': [full_df.loc[:, 'uninstr_median_executable_time'].mean()],
+            'std_uninstr_exec_time': [full_df['uninstr_median_executable_time'].std()],
+            'mean_uninstr_exec_space': [full_df.loc[:, 'uninstr_median_executable_space'].mean()],
+            'std_uninstr_exec_space': [full_df['uninstr_median_executable_space'].std()],
             'mean_exec_time_difference': [full_df.loc[:, 'executable_time_difference'].mean()],
             'std_exec_time_difference': [full_df['executable_time_difference'].std()],
             'mean_exec_space_difference': [full_df.loc[:, 'executable_space_difference'].mean()],
