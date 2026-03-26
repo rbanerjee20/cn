@@ -5,6 +5,7 @@
 #include <bennet/internals/size.h>
 
 static size_t global_max_size = 25;
+static size_t global_size = 20;
 
 size_t bennet_get_max_size(void) {
   return global_max_size;
@@ -14,9 +15,11 @@ void bennet_set_max_size(size_t sz) {
   assert(sz != 0);
 
   global_max_size = sz;
-}
 
-static size_t global_size = 20;
+  if (global_size > global_max_size) {
+    global_size = global_max_size;
+  }
+}
 
 size_t bennet_get_size(void) {
   return global_size;
@@ -92,7 +95,7 @@ uint64_t bennet_get_input_timer(void) {
   #include <Windows.h>
 
 /// Taken from https://stackoverflow.com/questions/10905892/equivalent-of-gettimeofday-for-windows
-int gettimeofday(struct timeval *tp, struct timezone *tzp) {
+int gettimeofday(struct timeval* tp, struct timezone* tzp) {
   // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
   // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
   // until 00:00:00 January 1, 1970
@@ -127,7 +130,7 @@ uint64_t bennet_get_microseconds(void) {
   return (((uint64_t)tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
-int64_t timediff_timeval(struct timeval *early, struct timeval *late) {
+int64_t timediff_timeval(struct timeval* early, struct timeval* late) {
   return (late->tv_sec - early->tv_sec) * 1000000 + (late->tv_usec - early->tv_usec);
 }
 
@@ -164,8 +167,12 @@ size_t bennet_compute_size(enum bennet_sizing_strategy strategy,
           successes >= max_tests || max_tests % max_size == 0) {
         potential_size = (successes % max_tests + recent_discards / discard_divisor);
       } else {
-        potential_size = (successes % max_size) * max_size / (successes % max_size) +
+        potential_size = (successes % max_size) * max_size / (max_tests % max_size) +
                          recent_discards / discard_divisor;
+      }
+
+      if (potential_size > max_size) {
+        potential_size = max_size;
       }
 
       if (potential_size < max_size) {

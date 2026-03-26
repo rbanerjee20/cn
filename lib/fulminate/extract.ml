@@ -91,7 +91,6 @@ let from_loop ((_label_sym : Sym.t), (label_def : _ label_def)) : loop option =
       ( _loc,
         label_args_and_body,
         _annots,
-        _,
         `Aux_info (loop_condition_loc, loop_loc, contains_user_spec) ) ->
     let label_args_and_body = Core_to_mucore.at_of_arguments Fun.id label_args_and_body in
     let label_args_and_statements = ArgumentTypes.map stmts_in_expr label_args_and_body in
@@ -175,7 +174,7 @@ let ghost_args_and_their_call_locs prog5 =
       match ld with
       | Non_inlined (_, _, _, args) -> Some (param_of_arguments args)
       | Return _ -> None
-      | Loop (_, arguments, _, _, _) ->
+      | Loop (_, arguments, _, _) ->
         let expr = param_of_arguments arguments in
         Some expr
     in
@@ -228,20 +227,3 @@ let ghost_args_and_their_call_locs prog5 =
   in
   List.iter aux_expr exprs;
   !acc
-
-
-let max_num_of_ghost_args prog5 =
-  let count_spec_ghost_args args =
-    let rec aux n = function
-      | Mucore.Computational (_, _, args) -> aux n args
-      | Ghost (_, _, args) -> aux (n + 1) args
-      | L _ -> n
-    in
-    aux 0 args
-  in
-  let args_and_body_list = args_and_body_list_of_mucore prog5 in
-  let nums_of_spec_ghost_args = List.map count_spec_ghost_args args_and_body_list in
-  let nums_of_call_ghost_args =
-    List.map (fun (_, args) -> List.length args) (ghost_args_and_their_call_locs prog5)
-  in
-  List.fold_left max 0 (nums_of_spec_ghost_args @ nums_of_call_ghost_args)

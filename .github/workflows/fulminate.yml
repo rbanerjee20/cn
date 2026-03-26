@@ -1,4 +1,4 @@
-name: Spec Testing
+name: Fulminate
 
 on:
   pull_request:
@@ -6,19 +6,14 @@ on:
     branches:
       - main
 
-env:
-  CERBERUS_IMAGE_ID: ghcr.io/rems-project/cerberus/cn:release
-  ACTIONS_RUNNER_DEBUG: true
-  ACTIONS_STEP_DEBUG: true
-
 # cancel in-progress job when a new push is performed
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Spec testing
+  fulminate:
+    name: Fulminate
 
     strategy:
       matrix:
@@ -33,11 +28,7 @@ jobs:
 
       - name: System dependencies (ubuntu)
         run: |
-          sudo apt-get install build-essential libgmp-dev z3 opam cmake lcov
-
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
+          sudo apt-get install build-essential libgmp-dev z3 opam cmake
 
       - name: Install Clang
         if: ${{ matrix.compiler != 'gcc' }}
@@ -78,24 +69,24 @@ jobs:
           opam pin --yes --no-action add cn .
           opam install --yes cn
 
-      - name: Restore test gen cache
-        uses: actions/cache/restore@v4
-        with:
-          path: tests/.test-gen-cache.json
-          key: test-gen-cache-spec-${{ matrix.compiler }}-${{ hashFiles('tests/run-cn-test-gen.py', 'tests/cn-test-gen/src/**/*.c') }}
-          restore-keys: |
-            test-gen-cache-spec-${{ matrix.compiler }}-
-
-      - name: Run Bennet CI tests
+      - name: Run Fulminate CI tests (Cerberus)
         run: |
           alias cc=${{ matrix.compiler }}
           opam switch ${{ matrix.version }}
           eval $(opam env --switch=${{ matrix.version }})
-          cd tests; ./run-cn-test-gen.py
+          cd tests; ./run-cn-exec.sh
 
-      - name: Save test gen cache
-        uses: actions/cache/save@v4
-        if: always()
+      - name: Checkout cn-tutorial
+        uses: actions/checkout@v4
         with:
-          path: tests/.test-gen-cache.json
-          key: test-gen-cache-spec-${{ matrix.compiler }}-${{ hashFiles('tests/run-cn-test-gen.py', 'tests/cn-test-gen/src/**/*.c') }}
+          repository: rems-project/cn-tutorial
+          path: cn-tutorial
+          ref: cn-runtime-testing # FIXME: remove once the branch is merged
+
+      - name: Run Fulminate CI tests (CN tutorial)
+        run: |
+          alias cc=${{ matrix.compiler }}
+          opam switch ${{ matrix.version }}
+          eval $(opam env --switch=${{ matrix.version }})
+          cd cn-tutorial; ./runtime-test.sh
+          cd ..

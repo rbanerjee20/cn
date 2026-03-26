@@ -91,6 +91,7 @@ let run_tests
       dsl_log_dir
       lazy_gen
       disable_specialization
+      only_top_level_ite_lifting
   =
   (* flags *)
   Cerb_debug.debug_level := debug_level;
@@ -154,6 +155,7 @@ let run_tests
           use_solver_eval;
           smt_solver;
           disable_specialization;
+          only_top_level_ite_lifting;
           smt_logging;
           smt_log_unsat_cores;
           max_unfolds;
@@ -220,6 +222,7 @@ let run_tests
            ~skip_and_only:(skip_fulminate, only_fulminate)
            ?max_bump_blocks
            ?bump_block_size
+           ?disable_ghost_args:(Some true)
            filename
            cc
            pp_file
@@ -250,6 +253,7 @@ let run_tests
           Unix.execv build_script (Array.of_list [ build_script ])
         | Make ->
           Unix.chdir output_dir;
+          Unix.putenv "CC" cc;
           Unix.execvp "make" (Array.of_list [ "make"; "-j" ]));
       Result.ok ())
 
@@ -455,9 +459,7 @@ module Flags = struct
 
 
   let until_timeout =
-    let doc =
-      "Keep rerunning tests until the given timeout (in seconds) has been reached"
-    in
+    let doc = "Run tests until the given timeout (in seconds) has been reached" in
     Arg.(
       value
       & opt (some int) TestGeneration.default_cfg.until_timeout
@@ -531,6 +533,11 @@ module Flags = struct
   let disable_specialization =
     let doc = "Disable integer specialization in the generator pipeline" in
     Arg.(value & flag & info [ "disable-specialization" ] ~doc)
+
+
+  let only_top_level_ite_lifting =
+    let doc = "Only lift top-level ITE expressions" in
+    Arg.(value & flag & info [ "only-top-level-ite-lifting" ] ~doc)
 
 
   let disable_passes =
@@ -870,6 +877,7 @@ let cmd =
     $ Flags.dsl_log_dir
     $ Flags.lazy_gen
     $ Flags.disable_specialization
+    $ Flags.only_top_level_ite_lifting
   in
   let doc =
     "Generates tests for all functions in [FILE] with CN specifications.\n\

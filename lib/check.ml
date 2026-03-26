@@ -2107,6 +2107,9 @@ let rec check_expr labels (e : BT.t Mu.expr) (k : IT.t -> unit m) : unit m =
          | Uninit ->
            add_c
              loc
+             (* This requires --arrays-exp for CVC5. An alternative could be to
+                assert the value per byte from 0..size(t)-1 instead of for the
+                whole array, but I haven't tried it. *)
              (LC.T (IT.eq_ (byte_arr, const_map_ bt (none_ MemByte here) here) here))
          | Init ->
            let@ constr = bytes_constraints loc To ~value ~byte_arr ct in
@@ -2403,7 +2406,7 @@ let check_procedure
             pure
               (match def with
                | Mu.Non_inlined _ | Return _ -> return ()
-               | Loop (loc, label_args_and_body, _annots, _, _loop_info) ->
+               | Loop (loc, label_args_and_body, _annots, _loop_info) ->
                  debug
                    2
                    (lazy
