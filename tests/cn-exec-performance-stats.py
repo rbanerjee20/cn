@@ -217,6 +217,9 @@ def run_cmds_and_collect_stats(f, input_basename, instrumented):
                 executable_stats = {}
                 executable_stats['time'] = statistics.median(time_list)
                 executable_stats['space'] = statistics.median(space_list)
+                if args.track_owned:
+                    executable_stats['nr_owned_predicates'] = local_executable_stats['nr_owned_predicates']
+
 
                 if instrumented:
                     stats["generation"] = generation_stats
