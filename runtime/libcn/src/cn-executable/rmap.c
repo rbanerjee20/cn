@@ -25,15 +25,18 @@ typedef rmap_range_res_t result_t;
 
 static const rmap_value_t val_none = INT_MIN;
 
-static const result_t res_none = (result_t){.min = INT_MIN, .max = INT_MIN};
+static const result_t res_none =
+    (result_t){.min_key = INT_MIN, .max_key = INT_MIN, .min = INT_MIN, .max = INT_MIN};
 
 static inline result_t res_append(result_t a, result_t b) {
-  return (result_t){
-      .min = (a.min < b.min) ? a.min : b.min, .max = (a.max < b.max) ? b.max : a.max};
+  return (result_t){.min_key = (a.min < b.min) ? a.min_key : b.min_key,
+      .max_key = (a.max < b.max) ? b.max_key : a.max_key,
+      .min = (a.min < b.min) ? a.min : b.min,
+      .max = (a.max < b.max) ? b.max : a.max};
 }
 
-static inline result_t res_inject(rmap_value_t v) {
-  return (result_t){.min = v, .max = v};
+static inline result_t res_inject(rmap_key_t k, rmap_value_t v) {
+  return (result_t){.min_key = k, .max_key = k, .min = v, .max = v};
 }
 
 #ifdef _RMAP_DEBUG
@@ -221,16 +224,16 @@ rmap_value_t rmap_find(rmap_key_t k, rmap map) {
 
 #define res_partial(x) res_append((x), res_none)
 
-static result_t node_inject(const struct node* n) {
+static result_t node_inject(rmap_key_t k, struct node* n) {
   switch (n->state) {
     case EMPTY:
       return res_none;
     case LEAF:
-      return res_inject(n->leaf);
+      return res_inject(k, n->leaf);
     case INNER:
       return n->inner.qres;
     case SKIP:
-      return res_partial(node_inject(n->skip.child));
+      return res_partial(node_inject(k, n->skip.child));
     default:
       assert(false);
   }
@@ -242,7 +245,7 @@ static result_t find_range(
     case EMPTY:
       return res_none;
     case LEAF:
-      return res_inject(node->leaf);
+      return res_inject(k0, node->leaf);
     case INNER:
       if (complete_range(bits, k0, k1))
         return node->inner.qres;
@@ -260,7 +263,7 @@ static result_t find_range(
         else if (i == i1)
           v = find_range(bits, min_key(bits, k1), k1, n, map);
         else
-          v = node_inject(n);
+          v = node_inject(k0, n);
         acc = (i == i0) ? v : res_append(acc, v);
       }
       return acc;
@@ -289,7 +292,7 @@ static result_t find_range(
 rmap_range_res_t rmap_find_range(rmap_key_t k0, rmap_key_t k1, rmap map) {
   if (k0 == k1) {
     rmap_value_t res = rmap_find(k0, map);
-    return (rmap_range_res_t){.min = res, .max = res};
+    return (rmap_range_res_t){.min_key = k0, .max_key = k1, .min = res, .max = res};
   }
   assert(k0 < k1);
   return find_range(0, k0, k1, &map->root, map);
@@ -348,18 +351,19 @@ static struct node new_skip(struct node* child, rmap_key_t path, bits_t rx, rmap
 
 #define NOWHERE (-1UL)
 
-static struct node new_inner(struct node* children, result_t* q, bool skip, rmap map) {
+static struct node new_inner(
+    rmap_key_t k, struct node* children, result_t* q, bool skip, rmap map) {
   struct node node;
 
   if (q)
     node = INNER_NODE(children, *q);
   else {
     struct node node0 = children[0];
-    result_t acc = node_inject(&node0);
+    result_t acc = node_inject(k, &node0);
     bool same = true;
 
     for (size_t i = 1; i < asize(map); i++) {
-      result_t v = node_inject(&children[i]);
+      result_t v = node_inject(k, &children[i]);
       acc = res_append(acc, v);
       same = same && eq_fringe_node(&node0, &children[i]);
     }
@@ -444,14 +448,16 @@ static void put_leaf(bits_t bits,
 
   result_t q;
   if (node->state == LEAF && newn->state == LEAF)
-    *node = (q = res_append(res_inject(node->leaf), res_inject(newn->leaf)),
-        new_inner(children, &q, false, map));
+    *node = (q = res_append(res_inject(k0, node->leaf), res_inject(k0, newn->leaf)),
+        new_inner(k0, children, &q, false, map));
   else if (node->state == LEAF && newn->state == EMPTY)
-    *node = (q = res_partial(res_inject(node->leaf)), new_inner(children, &q, true, map));
+    *node = (q = res_partial(res_inject(k0, node->leaf)),
+        new_inner(k0, children, &q, true, map));
   else if (node->state == EMPTY && newn->state == LEAF)
-    *node = (q = res_partial(res_inject(newn->leaf)), new_inner(children, &q, true, map));
+    *node = (q = res_partial(res_inject(k0, newn->leaf)),
+        new_inner(k0, children, &q, true, map));
   else if (node->state == INNER || node->state == SKIP)
-    *node = new_inner(children, NULL, true, map);
+    *node = new_inner(k0, children, NULL, true, map);
   else
     assert(false);
 }
