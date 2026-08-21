@@ -25,18 +25,21 @@ typedef rmap_range_res_t result_t;
 
 static const rmap_value_t val_none = INT_MIN;
 
-static const result_t res_none =
-    (result_t){.min_key = INT_MIN, .max_key = INT_MIN, .min = INT_MIN, .max = INT_MIN};
+static const result_t res_none = (result_t){.first_key_for_min = INT_MIN,
+    .first_key_for_max = INT_MIN,
+    .min = INT_MIN,
+    .max = INT_MIN};
 
 static inline result_t res_append(result_t a, result_t b) {
-  return (result_t){.min_key = (a.min < b.min) ? a.min_key : b.min_key,
-      .max_key = (a.max < b.max) ? b.max_key : a.max_key,
+  return (result_t){
+      .first_key_for_min = (a.min < b.min) ? a.first_key_for_min : b.first_key_for_min,
+      .first_key_for_max = (a.max < b.max) ? b.first_key_for_max : a.first_key_for_max,
       .min = (a.min < b.min) ? a.min : b.min,
       .max = (a.max < b.max) ? b.max : a.max};
 }
 
 static inline result_t res_inject(rmap_key_t k, rmap_value_t v) {
-  return (result_t){.min_key = k, .max_key = k, .min = v, .max = v};
+  return (result_t){.first_key_for_min = k, .first_key_for_max = k, .min = v, .max = v};
 }
 
 #ifdef _RMAP_DEBUG
@@ -292,7 +295,8 @@ static result_t find_range(
 rmap_range_res_t rmap_find_range(rmap_key_t k0, rmap_key_t k1, rmap map) {
   if (k0 == k1) {
     rmap_value_t res = rmap_find(k0, map);
-    return (rmap_range_res_t){.min_key = k0, .max_key = k1, .min = res, .max = res};
+    return (rmap_range_res_t){
+        .first_key_for_min = k0, .first_key_for_max = k0, .min = res, .max = res};
   }
   assert(k0 < k1);
   return find_range(0, k0, k1, &map->root, map);

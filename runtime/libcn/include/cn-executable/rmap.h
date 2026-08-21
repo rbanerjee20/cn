@@ -16,8 +16,8 @@ typedef uint64_t rmap_key_t;
 typedef int rmap_value_t;
 
 typedef struct {
-  rmap_key_t min_key;
-  rmap_key_t max_key;
+  rmap_key_t first_key_for_min;
+  rmap_key_t first_key_for_max;
   rmap_value_t min;
   rmap_value_t max;
 } rmap_range_res_t;

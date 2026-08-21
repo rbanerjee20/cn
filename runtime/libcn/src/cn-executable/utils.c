@@ -300,7 +300,7 @@ void cn_postcondition_leak_check(void) {
     // XXX TODO: scan for the failing address
     cn_printf(CN_LOGGING_ERROR,
         "Postcondition leak check failed, ownership leaked for pointer " FMT_PTR "\n",
-        (uintptr_t)res.max_key);
+        (uintptr_t)res.first_key_for_max);
     cn_failure(CN_FAILURE_OWNERSHIP_LEAK, POST);
   }
 }
