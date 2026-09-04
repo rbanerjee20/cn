@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <signal.h>  // for SIGABRT
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,10 +34,13 @@ static allocator bump_alloc = (allocator){
 
 static _Bool fulminate_initialized = false;
 
-void fulminate_destroy(void) {
+void fulminate_destroy(_Bool with_ghost_args) {
   if (!fulminate_initialized) {
     return;  // Already destroyed or never initialized
   }
+
+  if (with_ghost_args)
+    free_ghost_frame_stack();
 
   cn_bump_free_all();
   free_ownership_ghost_state();
@@ -45,16 +49,37 @@ void fulminate_destroy(void) {
   fulminate_initialized = false;
 }
 
-void fulminate_init(void) {
+void fulminate_pbt_destroy(void) {
+  fulminate_destroy(0);
+}
+
+void fulminate_init_global_ghost_state(_Bool with_ghost_args) {
+  init_ownership_ghost_state();
+  init_ghost_stack_depth();
+  if (with_ghost_args)
+    init_ghost_frame_stack();
+}
+
+void fulminate_init_flags(struct fulm_init_flags flags) {
+  init_exec_c_locs_mode(flags.exec_c_locs_mode);
+  init_correct_missing_ownership(flags.correct_missing_ownership);
+  init_ownership_stack_mode(flags.ownership_stack_mode);
+}
+
+void fulminate_init(_Bool with_ghost_args, struct fulm_init_flags flags) {
   assert(!fulminate_initialized && "Fulminate already initialized - destroy first");
 
-  initialise_ownership_ghost_state();
-  initialise_ghost_stack_depth();
-  initialise_exec_c_locs_mode(0);
-  initialise_correct_missing_ownership(0);
-  initialise_ownership_stack_mode(0);
+  fulminate_init_global_ghost_state(with_ghost_args);
+  fulminate_init_flags(flags);
 
   fulminate_initialized = true;
+}
+
+void fulminate_pbt_init(void) {
+  fulminate_init(0,
+      (struct fulm_init_flags){.exec_c_locs_mode = 0,
+          .correct_missing_ownership = 0,
+          .ownership_stack_mode = 0});
 }
 
 static enum cn_logging_level logging_level = CN_LOGGING_INFO;
@@ -244,7 +269,7 @@ cn_map* map_create(void) {
   return ht_create(&bump_alloc);
 }
 
-void initialise_ownership_ghost_state(void) {
+void init_ownership_ghost_state(void) {
   nr_owned_predicates = 0;
   cn_ownership_global_ghost_state =
       rmap_create(2, fulm_default_alloc.malloc, fulm_default_alloc.free);
@@ -255,19 +280,19 @@ void free_ownership_ghost_state(void) {
   rmap_free(cn_ownership_global_ghost_state);
 }
 
-void initialise_ghost_stack_depth(void) {
+void init_ghost_stack_depth(void) {
   cn_stack_depth = 0;
 }
 
-void initialise_exec_c_locs_mode(_Bool flag) {
+void init_exec_c_locs_mode(_Bool flag) {
   exec_c_locs_mode = flag;
 }
 
-void initialise_correct_missing_ownership(_Bool flag) {
+void init_correct_missing_ownership(_Bool flag) {
   correct_missing_ownership = flag;
 }
 
-void initialise_ownership_stack_mode(_Bool flag) {
+void init_ownership_stack_mode(_Bool flag) {
   ownership_stack_mode = flag;
 }
 
@@ -329,7 +354,7 @@ struct loop_ownership {
 
 // No destructors: expects to be dropped by the bump allocator _in a timely
 // manner_.
-struct loop_ownership* initialise_loop_ownership_state(void) {
+struct loop_ownership* init_loop_ownership_state(void) {
   struct loop_ownership* loop_ownership =
       bump_alloc.malloc(sizeof(struct loop_ownership));
   assert(loop_ownership);
@@ -785,8 +810,7 @@ void update_error_message_info_(
       function_name, file_name, line_number, cn_source_loc, global_error_msg_info);
 }
 
-void initialise_error_msg_info_(
-    const char* function_name, char* file_name, int line_number) {
+void init_error_msg_info_(const char* function_name, char* file_name, int line_number) {
   // cn_printf(CN_LOGGING_INFO, "Initialising error message info\n");
   global_error_msg_info =
       make_error_message_info_entry(function_name, file_name, line_number, 0, NULL);
@@ -924,7 +948,7 @@ struct ghost_frame_stack {
 
 static struct ghost_frame_stack* ghost_frame_stack_top;
 
-void initialise_ghost_frame_stack(void) {
+void init_ghost_frame_stack(void) {
   ghost_frame_stack_top = NULL;
 }
 

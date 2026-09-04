@@ -333,8 +333,8 @@ size_t bennet_compute_size(enum bennet_sizing_strategy strategy,
 
 int cn_test_main(int argc, char* argv[]);
 
-void fulminate_destroy(void);
-void fulminate_init(void);
+void fulminate_pbt_destroy(void);
+void fulminate_pbt_init(void);
 void bennet_destroy(void);
 void bennet_init(void);
 void cn_smt_destroy(void);
@@ -344,9 +344,9 @@ void cn_smt_init(void);
   std_set_default_alloc();                                                               \
   cn_smt_destroy();                                                                      \
   bennet_destroy();                                                                      \
-  fulminate_destroy();                                                                   \
+  fulminate_pbt_destroy();                                                               \
   cn_test_free_all();                                                                    \
-  fulminate_init();                                                                      \
+  fulminate_pbt_init();                                                                  \
   bennet_init();                                                                         \
   cn_smt_init();
 
