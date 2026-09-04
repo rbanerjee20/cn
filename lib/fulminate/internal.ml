@@ -716,16 +716,16 @@ let generate_global_assignments
           @ global_map_stmts_ )
     in
     let global_unmapping_stmts_ = List.map OE.generate_c_local_ownership_exit globals in
-    let free_ghost_frame_stack_fn_str = "free_ghost_frame_stack" in
+    (* let free_ghost_frame_stack_fn_str = "free_ghost_frame_stack" in
     let free_ghost_frame_stack_decl =
       A.(
         AilSexpr
           (mk_expr
              (AilEcall (mk_expr (AilEident (Sym.fresh free_ghost_frame_stack_fn_str)), []))))
-    in
+    in *)
     let global_unmapping_str =
       generate_ail_stat_strs
-        ([], global_unmapping_stmts_ @ [ free_ghost_frame_stack_decl ])
+        ([], global_unmapping_stmts_ (* @ [ free_ghost_frame_stack_decl ] *))
     in
     [ (main_sym, (init_and_global_mapping_str, global_unmapping_str)) ]
 
