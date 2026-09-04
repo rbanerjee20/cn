@@ -703,6 +703,7 @@ let generate_global_assignments
     let assignments =
       OE.get_ownership_global_init_stats ?max_bump_blocks ?bump_block_size ()
     in
+    (* TODO: Add Ail generation for new Fulminate init function *)
     let init_and_global_mapping_str =
       generate_ail_stat_strs
         ( [],

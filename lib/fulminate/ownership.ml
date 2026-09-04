@@ -61,24 +61,8 @@ let get_ownership_global_init_stats ?max_bump_blocks ?bump_block_size () =
     ]
     |> List.filter_map Fun.id
   in
-  let cn_ghost_state_init_fcall =
-    mk_expr
-      A.(
-        AilEcall (mk_expr (AilEident (Sym.fresh "initialise_ownership_ghost_state")), []))
-  in
-  let cn_ghost_stack_depth_init_fcall =
-    mk_expr
-      A.(AilEcall (mk_expr (AilEident (Sym.fresh "initialise_ghost_stack_depth")), []))
-  in
-  let fcalls = [ cn_ghost_state_init_fcall; cn_ghost_stack_depth_init_fcall ] in
-  let fcalls =
-    let cn_initialise_ghost_frame_stack_fcall =
-      mk_expr
-        A.(AilEcall (mk_expr (AilEident (Sym.fresh "initialise_ghost_frame_stack")), []))
-    in
-    fcalls @ [ cn_initialise_ghost_frame_stack_fcall ]
-  in
-  List.map (fun e -> A.(AilSexpr e)) (bump_config_calls @ fcalls)
+  (* TODO: Add to new fulminate_init function parameters *)
+  List.map (fun e -> A.(AilSexpr e)) bump_config_calls
 
 
 let generate_c_local_cn_addr_var sym =
