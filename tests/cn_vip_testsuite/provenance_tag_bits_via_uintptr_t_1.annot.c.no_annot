@@ -1,12 +1,12 @@
 return code: 1
 tests/cn_vip_testsuite/provenance_tag_bits_via_uintptr_t_1.annot.c:8:11: warning: Treating bitwise operation on integers as uninterpreted.
-  ensures i & 3 == rem(i,4);
+  ensures i & 3 == mod(i,4);
           ~~^~~ 
 tests/cn_vip_testsuite/provenance_tag_bits_via_uintptr_t_1.annot.c:12:11: warning: Treating bitwise operation on integers as uninterpreted.
   ensures i | 1 == i+1;
           ~~^~~ 
 tests/cn_vip_testsuite/provenance_tag_bits_via_uintptr_t_1.annot.c:16:11: warning: Treating bitwise operation on integers as uninterpreted.
-  ensures i & (MAXu64() - 3) == i - rem(i,4);
+  ensures i & (MAXu64() - 3) == i - mod(i,4);
           ~~^~~~~~~~~~~~~~~~ 
 tests/cn_vip_testsuite/provenance_tag_bits_via_uintptr_t_1.annot.c:34:10: warning: Treating bitwise operation on integers as uninterpreted.
   assert((i & 3u) == 0u);

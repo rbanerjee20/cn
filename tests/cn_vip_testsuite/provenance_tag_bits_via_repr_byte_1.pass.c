@@ -7,15 +7,20 @@ int x=1;
 /*@  
 lemma and_rem(integer i)
   requires i >= 0;
-  ensures i & 3 == rem(i,4);
+  ensures i & 3 == mod(i,4);
 
 lemma or_plus(integer i)
-  requires i >= 0; rem(i,4) == 0;
+  requires i >= 0; mod(i,4) == 0;
   ensures i | 1 == i+1;
 
 lemma and_not_div(integer i)
   requires 0 <= i; i <= MAXu8();
-  ensures i & (MAXu8() - 3) == i - rem(i,4);
+           mod(i,4) == 1;
+  ensures i & (MAXu8() - 3) == i - 1;
+
+lemma and(integer i)
+  requires 0 <= i; i <= MAXu8();
+  ensures i & (MAXu32() - 3) == i & (MAXu8() - 3);
 
 @*/
 int main()
@@ -45,6 +50,7 @@ requires
   // [p might be passed around or copied here]
   // clear the low-order bits again
   /*@ apply and_not_div(i); @*/
+  /*@ apply and(i); @*/
   *(byte*)&p = (byte)((unsigned char)(*(byte*)&p) & ~3u);
   // are p and q now equivalent?
   /*CN_VIP*//*@ from_bytes RW<int*>(&p); @*/
