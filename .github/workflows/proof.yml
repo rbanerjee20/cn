@@ -94,10 +94,11 @@ jobs:
         opam install --yes cn
 
     - name: Checkout cn-tutorial
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: rems-project/cn-tutorial
         path: cn-tutorial
+	ref: fix-integers       # remove once the PR is ready
 
     - name: Run CN tests
       run: |
