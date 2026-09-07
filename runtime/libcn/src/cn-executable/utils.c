@@ -60,26 +60,26 @@ void fulminate_init_global_ghost_state(_Bool with_ghost_args) {
     init_ghost_frame_stack();
 }
 
-void fulminate_init_flags(struct fulm_init_flags flags) {
+void fulminate_init_global_flags(struct fulm_init_flags flags) {
   init_exec_c_locs_mode(flags.exec_c_locs_mode);
   init_correct_missing_ownership(flags.correct_missing_ownership);
   init_ownership_stack_mode(flags.ownership_stack_mode);
 }
 
-void fulminate_init(_Bool with_ghost_args, struct fulm_init_flags flags) {
+void fulminate_init(struct fulm_init_flags flags) {
   assert(!fulminate_initialized && "Fulminate already initialized - destroy first");
 
-  fulminate_init_global_ghost_state(with_ghost_args);
-  fulminate_init_flags(flags);
+  fulminate_init_global_ghost_state(flags.with_ghost_args);
+  fulminate_init_global_flags(flags);
 
   fulminate_initialized = true;
 }
 
 void fulminate_pbt_init(void) {
-  fulminate_init(0,
-      (struct fulm_init_flags){.exec_c_locs_mode = 0,
-          .correct_missing_ownership = 0,
-          .ownership_stack_mode = 0});
+  fulminate_init((struct fulm_init_flags){.with_ghost_args = 0,
+      .exec_c_locs_mode = 0,
+      .correct_missing_ownership = 0,
+      .ownership_stack_mode = 0});
 }
 
 static enum cn_logging_level logging_level = CN_LOGGING_INFO;

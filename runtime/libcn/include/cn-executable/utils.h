@@ -39,13 +39,14 @@ enum region_owned {
 };
 
 struct fulm_init_flags {
+  _Bool with_ghost_args;
   _Bool exec_c_locs_mode;
   _Bool correct_missing_ownership;
   _Bool ownership_stack_mode;
 };
 
 void fulminate_destroy(_Bool with_ghost_args);
-void fulminate_init(_Bool with_ghost_args, struct fulm_init_flags flags);
+void fulminate_init(struct fulm_init_flags flags);
 void fulminate_pbt_destroy(void);
 void fulminate_pbt_init(void);
 

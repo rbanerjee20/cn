@@ -680,19 +680,9 @@ let generate_global_assignments
   let exec_c_locs_mode =
     if experimental_ownership_stack_mode then false else exec_c_locs_mode
   in
-  let generate_flag_init_stat (flag, str) =
-    let gen_ail_const_from_flag flag =
-      A.(
-        AilEconst
-          (ConstantInteger (IConstant (Z.of_int (Bool.to_int flag), Decimal, None))))
-    in
-    let ownership_stack_mode_init_expr_ =
-      A.(
-        AilEcall
-          ( mk_expr (AilEident (Sym.fresh ("initialise_" ^ str))),
-            [ mk_expr (gen_ail_const_from_flag flag) ] ))
-    in
-    A.AilSexpr (mk_expr ownership_stack_mode_init_expr_)
+  let gen_ail_const_from_flag flag =
+    A.(
+      AilEconst (ConstantInteger (IConstant (Z.of_int (Bool.to_int flag), Decimal, None))))
   in
   match get_main sigm with
   | [] -> []
@@ -700,35 +690,39 @@ let generate_global_assignments
     let globals = Cn_to_ail.extract_global_variables cabs_tunit prog5 in
     let global_map_fcalls = List.map OE.generate_c_local_ownership_entry_fcall globals in
     let global_map_stmts_ = List.map (fun e -> A.AilSexpr e) global_map_fcalls in
+    (* TODO: Add to Fulminate init function as parameters *)
     let assignments =
       OE.get_ownership_global_init_stats ?max_bump_blocks ?bump_block_size ()
     in
-    (* TODO: Add Ail generation for new Fulminate init function *)
-    let init_and_global_mapping_str =
-      generate_ail_stat_strs
-        ( [],
-          assignments
-          @ List.map
-              generate_flag_init_stat
-              [ (exec_c_locs_mode, "exec_c_locs_mode");
-                (correct_missing_ownership_mode, "correct_missing_ownership");
-                (experimental_ownership_stack_mode, "ownership_stack_mode")
-              ]
-          @ global_map_stmts_ )
+    let struct_tag = Sym.fresh "fulm_init_flags" in
+    let member_pairs =
+      [ ("with_ghost_args", true);
+        ("exec_c_locs_mode", exec_c_locs_mode);
+        ("correct_missing_ownership", correct_missing_ownership_mode);
+        ("ownership_stack_mode", experimental_ownership_stack_mode)
+      ]
     in
+    let struct_member_pairs =
+      List.map
+        (fun (str, flag) ->
+           ( Id.make Cerb_location.unknown str,
+             Some (mk_expr (gen_ail_const_from_flag flag)) ))
+        member_pairs
+    in
+    let struct_initialiser = A.AilEstruct (struct_tag, struct_member_pairs) in
+    let fulm_init_fcall_ident = A.(AilEident (Sym.fresh "fulminate_init")) in
+    let fulm_init_fcall =
+      mk_expr
+        A.(
+          AilEcall (mk_expr fulm_init_fcall_ident, List.map mk_expr [ struct_initialiser ]))
+    in
+    let init_str =
+      generate_ail_stat_strs ([], assignments @ [ A.(AilSexpr fulm_init_fcall) ])
+    in
+    let global_mapping_str = generate_ail_stat_strs ([], global_map_stmts_) in
     let global_unmapping_stmts_ = List.map OE.generate_c_local_ownership_exit globals in
-    (* let free_ghost_frame_stack_fn_str = "free_ghost_frame_stack" in
-    let free_ghost_frame_stack_decl =
-      A.(
-        AilSexpr
-          (mk_expr
-             (AilEcall (mk_expr (AilEident (Sym.fresh free_ghost_frame_stack_fn_str)), []))))
-    in *)
-    let global_unmapping_str =
-      generate_ail_stat_strs
-        ([], global_unmapping_stmts_ (* @ [ free_ghost_frame_stack_decl ] *))
-    in
-    [ (main_sym, (init_and_global_mapping_str, global_unmapping_str)) ]
+    let global_unmapping_str = generate_ail_stat_strs ([], global_unmapping_stmts_) in
+    [ (main_sym, (init_str @ global_mapping_str, global_unmapping_str)) ]
 
 
 (* Needed for handling typedef definitions *)
