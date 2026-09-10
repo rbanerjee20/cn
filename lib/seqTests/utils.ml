@@ -204,10 +204,6 @@ let create_intermediate_test_file
          (nest
             2
             (hardline
-             ^^
-             let init_ghost = Fulminate.Ownership.get_ownership_global_init_stats () in
-             separate_map hardline stmt_to_doc init_ghost
-             ^^ hardline
              ^^ string "set_cn_failure_cb(&seq_failure_cb);"
              ^^ hardline
              ^^ sequence
