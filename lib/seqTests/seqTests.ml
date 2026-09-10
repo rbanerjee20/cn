@@ -201,7 +201,7 @@ let create_test_file (sequence : Pp.document) (fun_decls : Pp.document) : Pp.doc
            ^^
            let fulm_init =
              Fulminate.Internal.get_global_init_stats ()
-             (* ghost arg init enabled *)
+             (* ghost args enabled *)
            in
            separate_map hardline SUtils.stmt_to_doc [ fulm_init ] ^^ hardline ^^ sequence
           )

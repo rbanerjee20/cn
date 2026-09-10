@@ -207,7 +207,7 @@ let create_intermediate_test_file
              ^^
              let fulm_init =
                Fulminate.Internal.get_global_init_stats ()
-               (* ghost arg init enabled *)
+               (* ghost args enabled *)
              in
              separate_map hardline stmt_to_doc [ fulm_init ]
              ^^ hardline
