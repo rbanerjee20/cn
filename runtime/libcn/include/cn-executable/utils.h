@@ -45,8 +45,14 @@ struct fulm_init_flags {
   _Bool ownership_stack_mode;
 };
 
+struct fulm_init_config {
+  size_t max_bump_blocks;
+  size_t bump_block_size;
+  struct fulm_init_flags flags;
+};
+
 void fulminate_destroy(_Bool with_ghost_args);
-void fulminate_init(struct fulm_init_flags flags);
+void fulminate_init(struct fulm_init_config flags);
 void fulminate_pbt_destroy(void);
 void fulminate_pbt_init(void);
 

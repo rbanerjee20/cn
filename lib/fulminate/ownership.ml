@@ -61,7 +61,6 @@ let get_ownership_global_init_stats ?max_bump_blocks ?bump_block_size () =
     ]
     |> List.filter_map Fun.id
   in
-  (* TODO: Add to new fulminate_init function parameters *)
   List.map (fun e -> A.(AilSexpr e)) bump_config_calls
 
 

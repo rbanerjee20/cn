@@ -53,6 +53,14 @@ void fulminate_pbt_destroy(void) {
   fulminate_destroy(0);
 }
 
+void fulminate_init_bump_alloc(size_t max_bump_blocks, size_t bump_block_size) {
+  // Either argument being 0 means it wasn't set -- nothing to do
+  if (max_bump_blocks)
+    cn_bump_set_max_blocks(max_bump_blocks);
+  if (bump_block_size)
+    cn_bump_set_block_size(bump_block_size);
+}
+
 void fulminate_init_global_ghost_state(_Bool with_ghost_args) {
   init_ownership_ghost_state();
   init_ghost_stack_depth();
@@ -66,20 +74,25 @@ void fulminate_init_global_flags(struct fulm_init_flags flags) {
   init_ownership_stack_mode(flags.ownership_stack_mode);
 }
 
-void fulminate_init(struct fulm_init_flags flags) {
+void fulminate_init(struct fulm_init_config config) {
   assert(!fulminate_initialized && "Fulminate already initialized - destroy first");
 
-  fulminate_init_global_ghost_state(flags.with_ghost_args);
-  fulminate_init_global_flags(flags);
+  fulminate_init_bump_alloc(config.max_bump_blocks, config.bump_block_size);
+  fulminate_init_global_ghost_state(config.flags.with_ghost_args);
+  fulminate_init_global_flags(config.flags);
 
   fulminate_initialized = true;
 }
 
 void fulminate_pbt_init(void) {
-  fulminate_init((struct fulm_init_flags){.with_ghost_args = 0,
-      .exec_c_locs_mode = 0,
-      .correct_missing_ownership = 0,
-      .ownership_stack_mode = 0});
+  fulminate_init((struct fulm_init_config){
+      .max_bump_blocks = 0,
+      .bump_block_size = 0,
+      .flags = (struct fulm_init_flags){.with_ghost_args = 0,
+          .exec_c_locs_mode = 0,
+          .correct_missing_ownership = 0,
+          .ownership_stack_mode = 0},
+  });
 }
 
 static enum cn_logging_level logging_level = CN_LOGGING_INFO;
