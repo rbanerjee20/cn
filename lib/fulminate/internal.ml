@@ -680,13 +680,10 @@ let generate_global_assignments
   let exec_c_locs_mode =
     if experimental_ownership_stack_mode then false else exec_c_locs_mode
   in
-  let gen_ail_const_from_flag flag =
-    A.(
-      AilEconst (ConstantInteger (IConstant (Z.of_int (Bool.to_int flag), Decimal, None))))
-  in
   let gen_ail_const_from_int i =
     A.(AilEconst (ConstantInteger (IConstant (Z.of_int i, Decimal, None))))
   in
+  let gen_ail_const_from_flag flag = gen_ail_const_from_int (Bool.to_int flag) in
   match get_main sigm with
   | [] -> []
   | (main_sym, _) :: _ ->
