@@ -71,14 +71,14 @@ void ht_destroy(hash_table* table) {
 
 // Return 64-bit FNV-1a hash for key (NUL-terminated). See description:
 // https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function
-static uint64_t hash_key(int64_t* key) {
+static uint64_t hash_key(uint64_t* key) {
   uint64_t hash = FNV_OFFSET;
   hash ^= *key;
   hash *= FNV_PRIME;
   return hash;
 }
 
-void* ht_get(hash_table* table, int64_t* key) {
+void* ht_get(hash_table* table, uint64_t* key) {
   // AND hash with capacity-1 to ensure it's within entries array.
   uint64_t hash = hash_key(key);
   size_t index = (size_t)(hash & (uint64_t)(table->capacity - 1));
@@ -101,16 +101,16 @@ void* ht_get(hash_table* table, int64_t* key) {
   return NULL;
 }
 
-int64_t* duplicate_key(int64_t* key, allocator* alloc) {
-  int64_t* new_key = fulm_malloc(sizeof(int64_t), alloc);
+uint64_t* duplicate_key(uint64_t* key, allocator* alloc) {
+  uint64_t* new_key = fulm_malloc(sizeof(uint64_t), alloc);
   *new_key = *key;
   return new_key;
 }
 
 // Internal function to set an entry (without expanding table).
-static int64_t* ht_set_entry(ht_entry* entries,
+static uint64_t* ht_set_entry(ht_entry* entries,
     size_t capacity,
-    int64_t* key,
+    uint64_t* key,
     void* value,
     int* plength,
     allocator* alloc) {
@@ -174,7 +174,7 @@ static _Bool ht_expand(hash_table* table) {
   return 1;
 }
 
-int64_t* ht_set(hash_table* table, int64_t* key, void* value) {
+uint64_t* ht_set(hash_table* table, uint64_t* key, void* value) {
   assert(value != NULL);
   if (value == NULL) {
     return NULL;

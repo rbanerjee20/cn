@@ -135,7 +135,7 @@ typedef struct cn_bits_u64 {
 } cn_bits_u64;
 
 typedef struct cn_integer {
-  int64_t val;
+  uint64_t val;
 } cn_integer;
 
 typedef struct cn_pointer {
@@ -459,7 +459,7 @@ cn_bool* default_cn_bool(void);
 
 #define CN_GEN_MAP_GET(CNTYPE)                                                           \
   static inline void* cn_map_get_##CNTYPE(cn_map* m, cn_integer* key) {                  \
-    int64_t* key_ptr = (int64_t*)fulm_malloc(sizeof(int64_t), &fulm_default_alloc);      \
+    uint64_t* key_ptr = (uint64_t*)fulm_malloc(sizeof(uint64_t), &fulm_default_alloc);   \
     *key_ptr = key->val;                                                                 \
     void* res = ht_get(m, key_ptr);                                                      \
     fulm_free(key_ptr, &fulm_default_alloc);                                             \
@@ -528,7 +528,7 @@ CN_GEN_ALL(uint8_t, uint8_t, cn_bits_u8)
 CN_GEN_ALL(uint16_t, uint16_t, cn_bits_u16)
 CN_GEN_ALL(uint32_t, uint32_t, cn_bits_u32)
 CN_GEN_ALL(uint64_t, uint64_t, cn_bits_u64)
-CN_GEN_ALL(unsigned long, signed long, cn_integer)
+CN_GEN_ALL(uint64_t, uint64_t, cn_integer)
 
 CN_GEN_PTR_CASTS_SIGNED(int8_t, cn_bits_i8)
 CN_GEN_PTR_CASTS_SIGNED(int16_t, cn_bits_i16)
@@ -538,7 +538,7 @@ CN_GEN_PTR_CASTS_UNSIGNED(uint8_t, cn_bits_u8)
 CN_GEN_PTR_CASTS_UNSIGNED(uint16_t, cn_bits_u16)
 CN_GEN_PTR_CASTS_UNSIGNED(uint32_t, cn_bits_u32)
 CN_GEN_PTR_CASTS_UNSIGNED(uint64_t, cn_bits_u64)
-CN_GEN_PTR_CASTS_SIGNED(signed long, cn_integer)
+CN_GEN_PTR_CASTS_UNSIGNED(uint64_t, cn_integer)
 
 cn_pointer* convert_to_cn_pointer(const void* ptr);
 void* convert_from_cn_pointer(cn_pointer* cn_ptr);
@@ -569,12 +569,12 @@ CN_GEN_MAP_GET(cn_map)
 //   NO_OP
 // };
 
-int ownership_ghost_state_get_depth(int64_t address);
-void ownership_ghost_state_set(int64_t address,
+int ownership_ghost_state_get_depth(uint64_t address);
+void ownership_ghost_state_set(uint64_t address,
     size_t size,
     int stack_depth_val,
     struct cn_error_message_info* error_msg_info);
-void ownership_ghost_state_remove(int64_t address, size_t size);
+void ownership_ghost_state_remove(uint64_t address, size_t size);
 
 /* CN ownership checking */
 void cn_assume_ownership(void* generic_c_ptr, unsigned long size, char* fun);

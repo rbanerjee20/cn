@@ -359,11 +359,11 @@ void cn_loop_put_back_ownership(struct loop_ownership* loop_ownership) {
   }
 }
 
-int ownership_ghost_state_get(int64_t address) {
+int ownership_ghost_state_get(uint64_t address) {
   return rmap_find(address, cn_ownership_global_ghost_state);
 }
 
-void ownership_ghost_state_set(int64_t address,
+void ownership_ghost_state_set(uint64_t address,
     size_t size,
     int stack_depth_val,
     struct cn_error_message_info* error_msg_info) {
@@ -382,7 +382,7 @@ void ownership_ghost_state_set(int64_t address,
   // }
 }
 
-void ownership_ghost_state_remove(int64_t address, size_t size) {
+void ownership_ghost_state_remove(uint64_t address, size_t size) {
   if (size > 0)
     rmap_remove(address, address + size - 1, cn_ownership_global_ghost_state);
 
@@ -397,14 +397,14 @@ void ownership_ghost_state_remove(int64_t address, size_t size) {
   //   }
 }
 
-rmap_range_res_t ownership_ghost_state_extrema(int64_t address, size_t size) {
+rmap_range_res_t ownership_ghost_state_extrema(uint64_t address, size_t size) {
   if (size > 0)
     return rmap_find_range(address, address + size - 1, cn_ownership_global_ghost_state);
   return (rmap_range_res_t){.max = UNMAPPED_VAL, .min = UNMAPPED_VAL};
 }
 
 _Bool is_wildcard(void* generic_c_ptr, int size) {
-  int64_t address = (uintptr_t)generic_c_ptr;
+  uint64_t address = (uintptr_t)generic_c_ptr;
   if (size > 0) {
     rmap_range_res_t res =
         rmap_find_range(address, address + size - 1, cn_ownership_global_ghost_state);
@@ -520,7 +520,7 @@ void cn_get_or_put_ownership(enum spec_mode spec_mode,
 }
 
 void report_and_correct_missing_ownership(
-    int64_t addr, size_t size, int depth, int expected_stack_depth) {
+    uint64_t addr, size_t size, int depth, int expected_stack_depth) {
   // TODO: switch depth check depending on access kind
   // see https://github.com/rems-project/cn-private/blob/main/notes/notes124-2025-09-02-fulminate-inferring-ownership.md
   if (depth == UNMAPPED_VAL || depth < expected_stack_depth) {
@@ -656,7 +656,7 @@ cn_map* cn_map_deep_copy(cn_map* m1) {
   hash_table_iterator hti = ht_iterator(m1);
 
   while (ht_next(&hti)) {
-    int64_t* curr_key = hti.key;
+    uint64_t* curr_key = hti.key;
     void* val = ht_get(m1, curr_key);
     ht_set(m2, curr_key, val);
   }
@@ -709,7 +709,7 @@ cn_bool* cn_map_subset(
   hash_table_iterator hti1 = ht_iterator(m1);
 
   while (ht_next(&hti1)) {
-    int64_t* curr_key = hti1.key;
+    uint64_t* curr_key = hti1.key;
     void* val1 = ht_get(m1, curr_key);
     void* val2 = ht_get(m2, curr_key);
 
