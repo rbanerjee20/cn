@@ -194,7 +194,14 @@ let create_test_file (sequence : Pp.document) (fun_decls : Pp.document) : Pp.doc
   ^^ string "int main"
   ^^ parens (string "int argc, char* argv[]")
   ^^ break 1
-  ^^ braces (nest 2 (hardline ^^ sequence) ^^ hardline)
+  ^^ braces
+       (nest
+          2
+          (hardline
+           ^^
+           let init_ghost = Fulminate.Ownership.get_ownership_global_init_stats () in
+           separate_map hardline SUtils.stmt_to_doc init_ghost ^^ hardline ^^ sequence)
+        ^^ hardline)
 
 
 let rec gen_sequence
