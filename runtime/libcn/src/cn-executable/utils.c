@@ -49,10 +49,6 @@ void fulminate_destroy(_Bool with_ghost_args) {
   fulminate_initialized = false;
 }
 
-void fulminate_pbt_destroy(void) {
-  fulminate_destroy(0);
-}
-
 void fulminate_init_bump_alloc(size_t max_bump_blocks, size_t bump_block_size) {
   // Either argument being 0 means it wasn't set -- nothing to do
   if (max_bump_blocks)
@@ -82,17 +78,6 @@ void fulminate_init(struct fulm_init_config config) {
   fulminate_init_global_flags(config.flags);
 
   fulminate_initialized = true;
-}
-
-void fulminate_pbt_init(void) {
-  fulminate_init((struct fulm_init_config){
-      .max_bump_blocks = 0,
-      .bump_block_size = 0,
-      .flags = (struct fulm_init_flags){.with_ghost_args = 0,
-          .exec_c_locs_mode = 0,
-          .correct_missing_ownership = 0,
-          .ownership_stack_mode = 0},
-  });
 }
 
 static enum cn_logging_level logging_level = CN_LOGGING_INFO;

@@ -53,8 +53,6 @@ struct fulm_init_config {
 
 void fulminate_destroy(bool with_ghost_args);
 void fulminate_init(struct fulm_init_config flags);
-void fulminate_pbt_destroy(void);
-void fulminate_pbt_init(void);
 
 /* Error handlers */
 enum cn_logging_level {
