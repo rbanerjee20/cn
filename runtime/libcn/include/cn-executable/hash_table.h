@@ -36,7 +36,7 @@ extern "C" {
 
 // Hash table entry (slot may be filled or empty).
 typedef struct {
-  uint64_t* key;  // key is NULL if this slot is empty
+  int64_t* key;  // key is NULL if this slot is empty
   void* value;
 } ht_entry;
 
@@ -54,16 +54,16 @@ hash_table* ht_create(allocator*);
 
 void ht_destroy(hash_table* table);
 
-void* ht_get(hash_table* table, uint64_t* key);
+void* ht_get(hash_table* table, int64_t* key);
 
 /** Note: the value pointer is stored in the table, but the key's is not */
-uint64_t* ht_set(hash_table* table, uint64_t* key, void* value);
+int64_t* ht_set(hash_table* table, int64_t* key, void* value);
 
 int ht_size(hash_table* table);
 
 typedef struct {
-  uint64_t* key;  // current key
-  void* value;    // current value
+  int64_t* key;  // current key
+  void* value;   // current value
 
   // Dont use these fields directly.
   hash_table* _table;  // reference to hash table being iterated

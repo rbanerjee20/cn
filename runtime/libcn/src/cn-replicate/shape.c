@@ -20,9 +20,9 @@
 static struct hash_table* alloc_sizes;
 
 void* cn_replica_alloc_get_parent(void* ptr) {
-  uint64_t* key = malloc(sizeof(uint64_t));
+  int64_t* key = malloc(sizeof(int64_t));
   assert(key);
-  *key = (uint64_t)ptr;
+  *key = (int64_t)ptr;
 
   size_t* old_sz = ht_get(alloc_sizes, key);
   free(key);
@@ -49,9 +49,9 @@ size_t cn_replica_alloc_get(void* ptr) {
   void* parent = cn_replica_alloc_get_parent(ptr);
   uintptr_t dist = (uintptr_t)ptr - (uintptr_t)parent;
 
-  uint64_t* key = malloc(sizeof(uint64_t));
+  int64_t* key = malloc(sizeof(int64_t));
   assert(key);
-  *key = (uint64_t)parent;
+  *key = (int64_t)parent;
 
   size_t* value = ht_get(alloc_sizes, key);
   free(key);
@@ -68,9 +68,9 @@ void cn_analyze_shape_owned(void* ptr, size_t sz) {
   uintptr_t dist = (uintptr_t)ptr - (uintptr_t)parent;
   sz += dist;
 
-  uint64_t* key = malloc(sizeof(uint64_t));
+  int64_t* key = malloc(sizeof(int64_t));
   assert(key);
-  *key = (uint64_t)parent;
+  *key = (int64_t)parent;
 
   size_t* old_sz = ht_get(alloc_sizes, key);
   if (old_sz == NULL) {
@@ -106,9 +106,9 @@ static int pointer_count = 0;
 static const char* cn_replicate_get(void* p) {
   p = cn_replica_alloc_get_parent(p);
 
-  uint64_t* key = malloc(sizeof(uint64_t));
+  int64_t* key = malloc(sizeof(int64_t));
   assert(key);
-  *key = (uint64_t)p;
+  *key = (int64_t)p;
 
   char* name = ht_get(allocated, key);
   if (name != NULL) {
