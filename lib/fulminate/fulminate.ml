@@ -613,7 +613,7 @@ let main
     generate_ownership_functions without_ownership_checking !Cn_to_ail.ownership_ctypes
   in
   let ordered_ail_tag_defs = order_ail_tag_definitions sigm.tag_definitions in
-  let c_tag_defs = generate_c_tag_def_strs ordered_ail_tag_defs in
+  let c_tag_decls = generate_c_tag_decl_strs ordered_ail_tag_defs in
   let cn_converted_struct_defs = generate_cn_versions_of_structs ordered_ail_tag_defs in
   let record_fun_defs, record_fun_decls = Records.generate_c_record_funs sigm in
   let record_defs = Records.generate_all_record_strs () in
@@ -642,7 +642,7 @@ let main
              Hoisting/lowering doesn't affect needing to do this *)
           "_Noreturn void abort(void);"
         ];
-        [ c_tag_defs ];
+        c_tag_decls;
         [ (if not (String.equal record_defs "") then "\n/* CN RECORDS */\n\n" else "");
           record_defs;
           cn_converted_struct_defs
@@ -691,7 +691,7 @@ let main
       memory_accesses_injections filtered_ail_prog
   in
   (* Use order of tag definitions from source when injecting on them directly - no call to Internal.order_ail_tag_definitions *)
-  let tag_def_injs = generate_tag_definition_injs sigm.tag_definitions in
+  (* let tag_def_injs = generate_tag_definition_injs sigm.tag_definitions in *)
   let give_precedence_map n = List.map (fun x -> (n, x)) in
   (* workaround for https://github.com/rems-project/cn/issues/392
   HK: This workaround is not so clean, which should be fixed later.
@@ -745,7 +745,7 @@ let main
     @ give_precedence_map bot executable_spec.in_stmt
     @ give_parenthesis_aware_precedence_map accesses_stmt_injs
     @ give_precedence_map bot toplevel_injections
-    @ give_precedence_map bot tag_def_injs
+    (* @ give_precedence_map bot tag_def_injs *)
     @ give_parenthesis_aware_precedence_map fn_call_ghost_args_injs
   in
   let pre_post_pairs =
