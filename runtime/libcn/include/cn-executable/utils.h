@@ -273,84 +273,78 @@ cn_bool* cn_pointer_gt(cn_pointer* i1, cn_pointer* i2);
 
 #define CN_GEN_LT(CNTYPE)                                                                \
   static inline cn_bool* CNTYPE##_lt(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_to_cn_bool(i1->val < i2->val);                                        \
+    return convert_to_cn_bool(convert_from_cn_bool(i1) < convert_from_cn_bool(i2));      \
   }
 
 #define CN_GEN_LE(CNTYPE)                                                                \
   static inline cn_bool* CNTYPE##_le(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_to_cn_bool(i1->val <= i2->val);                                       \
+    return convert_to_cn_bool(convert_from_cn_bool(i1) <= convert_from_cn_bool(i2));     \
   }
 
 #define CN_GEN_GT(CNTYPE)                                                                \
   static inline cn_bool* CNTYPE##_gt(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_to_cn_bool(i1->val > i2->val);                                        \
+    return convert_to_cn_bool(convert_from_cn_bool(i1) > convert_from_cn_bool(i2));      \
   }
 
 #define CN_GEN_GE(CNTYPE)                                                                \
   static inline cn_bool* CNTYPE##_ge(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_to_cn_bool(i1->val >= i2->val);                                       \
+    return convert_to_cn_bool(convert_from_cn_bool(i1) >= convert_from_cn_bool(i2));     \
   }
 
 #define CN_GEN_NEGATE(CNTYPE)                                                            \
   static inline CNTYPE* CNTYPE##_negate(CNTYPE* i) {                                     \
-    return convert_to_##CNTYPE(-(i->val));                                               \
+    return convert_to_##CNTYPE(-convert_from_##CNTYPE(i));                               \
   }
 
 #define CN_GEN_BW_COMPL(CNTYPE)                                                          \
   static inline CNTYPE* CNTYPE##_bw_compl(CNTYPE* i) {                                   \
-    return convert_to_##CNTYPE(~(i->val));                                               \
+    return convert_to_##CNTYPE(~convert_from_##CNTYPE(i));                               \
   }
 
 #define CN_GEN_ADD(UCTYPE, CTYPE, CNTYPE)                                                \
   static inline CNTYPE* CNTYPE##_add(CNTYPE* i1, CNTYPE* i2) {                           \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = (UCTYPE)i1->val + (UCTYPE)i2->val;                                        \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) + (UCTYPE)convert_from_##CNTYPE(i2));          \
   }
 
 #define CN_GEN_SUB(UCTYPE, CTYPE, CNTYPE)                                                \
   static inline CNTYPE* CNTYPE##_sub(CNTYPE* i1, CNTYPE* i2) {                           \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = (UCTYPE)i1->val - (UCTYPE)i2->val;                                        \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) - (UCTYPE)convert_from_##CNTYPE(i2));          \
   }
 
 #define CN_GEN_MUL(CTYPE, CNTYPE)                                                        \
   static inline CNTYPE* CNTYPE##_multiply(CNTYPE* i1, CNTYPE* i2) {                      \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = i1->val * i2->val;                                                        \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) * (UCTYPE)convert_from_##CNTYPE(i2));          \
   }
 
 #define CN_GEN_DIV(CTYPE, CNTYPE)                                                        \
   static inline CNTYPE* CNTYPE##_divide(CNTYPE* i1, CNTYPE* i2) {                        \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = i1->val / i2->val;                                                        \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) / (UCTYPE)convert_from_##CNTYPE(i2));          \
   }
 
 #define CN_GEN_SHIFT_LEFT(CTYPE, CNTYPE)                                                 \
   static inline CNTYPE* CNTYPE##_shift_left(CNTYPE* i1, CNTYPE* i2) {                    \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = i1->val << i2->val;                                                       \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) << (UCTYPE)convert_from_##CNTYPE(i2));         \
   }
 
 #define CN_GEN_SHIFT_RIGHT(CTYPE, CNTYPE)                                                \
   static inline CNTYPE* CNTYPE##_shift_right(CNTYPE* i1, CNTYPE* i2) {                   \
-    CNTYPE* res = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
-    res->val = i1->val >> i2->val;                                                       \
-    return res;                                                                          \
+    return convert_to_##CNTYPE(                                                          \
+        (UCTYPE)convert_from_##CNTYPE(i1) >> (UCTYPE)convert_from_##CNTYPE(i2));         \
   }
 
 #define CN_GEN_MIN(CNTYPE)                                                               \
   static inline CNTYPE* CNTYPE##_min(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_from_cn_bool(CNTYPE##_lt(i1, i2)) ? i1 : i2;                          \
+    return convert_from_##CNTYPE(i1) < convert_from_##CNTYPE(i2) ? i1 : i2;              \
   }
 
 #define CN_GEN_MAX(CNTYPE)                                                               \
   static inline CNTYPE* CNTYPE##_max(CNTYPE* i1, CNTYPE* i2) {                           \
-    return convert_from_cn_bool(CNTYPE##_gt(i1, i2)) ? i1 : i2;                          \
+    return convert_from_##CNTYPE(i1) > convert_from_##CNTYPE(i2) ? i1 : i2;              \
   }
 
 /* TODO: Account for UB: https://stackoverflow.com/a/20638659 */
