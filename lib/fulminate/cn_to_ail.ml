@@ -309,6 +309,9 @@ let lookup_records_map_with_default ?(cn_sym : Sym.t option) bt =
 
 
 (* TODO: Complete *)
+(* CN types that are C scalars at run time, passed by value; the rest are pointers to bump-allocated values *)
+let by_value = function CN_bool -> true | _ -> false
+
 let rec cn_to_ail_base_type cn_typ =
   let typedef_string_opt =
     match cn_typ with
@@ -351,11 +354,15 @@ let rec cn_to_ail_base_type cn_typ =
     | CN_c_typedef_name _ -> failwith (__LOC__ ^ ": TODO CN_c_typedef_name")
   in
   let ret = mk_ctype ~annots typ in
-  (* Make everything a pointer. TODO: Change *)
-  match typ with C.Void -> ret | _ -> mk_ctype C.(Pointer (C.no_qualifiers, ret))
+  match typ with
+  | C.Void -> ret
+  | _ when by_value cn_typ -> ret
+  | _ -> mk_ctype C.(Pointer (C.no_qualifiers, ret))
 
 
 let bt_to_ail_ctype t = cn_to_ail_base_type (bt_to_cn_base_type t)
+
+let is_by_value bt = by_value (bt_to_cn_base_type bt)
 
 let cn_to_ail_unop bt =
   let bt_typedef_str_opt = get_typedef_string (bt_to_ail_ctype bt) in
@@ -568,10 +575,15 @@ let get_equality_fn_call bt e1 e2 =
   match bt with
   | BT.Map (_, val_bt) ->
     let val_ctype_with_ptr = bt_to_ail_ctype val_bt in
-    let val_ctype = get_ctype_without_ptr val_ctype_with_ptr in
-    let val_str = str_of_ctype val_ctype in
-    let val_str = String.concat "_" (String.split_on_char ' ' val_str) in
-    let val_equality_str = val_str ^ "_equality" in
+    let val_equality_str =
+      if is_by_value val_bt then (* boxed in the map *)
+        Option.get (get_typedef_string val_ctype_with_ptr) ^ "_ptr_equality"
+      else (
+        let val_ctype = get_ctype_without_ptr val_ctype_with_ptr in
+        let val_str = str_of_ctype val_ctype in
+        let val_str = String.concat "_" (String.split_on_char ' ' val_str) in
+        val_str ^ "_equality")
+    in
     A.(
       AilEcall
         ( mk_expr (AilEident (Sym.fresh "cn_map_equality")),
@@ -661,11 +673,13 @@ let gen_bool_while_loop
   let incr_func_name =
     match typedef_name with Some str -> str ^ "_increment" | None -> ""
   in
-  let cn_bool_inplace_and_sym = Sym.fresh "cn_bool_inplace_and" in
-  let inplace_and_expr_ =
-    A.(AilEcall (mk_expr (AilEident cn_bool_inplace_and_sym), [ mk_expr b_ident; e ]))
+  let cn_bool_and_sym = Sym.fresh "cn_bool_and" in
+  let and_expr_ =
+    A.(AilEcall (mk_expr (AilEident cn_bool_and_sym), [ mk_expr b_ident; e ]))
   in
-  let inplace_and_stat = A.(AilSexpr (mk_expr inplace_and_expr_)) in
+  let and_stat =
+    A.(AilSexpr (mk_expr (AilEassign (mk_expr b_ident, mk_expr and_expr_))))
+  in
   let incr_stat =
     A.(
       AilSexpr
@@ -681,11 +695,11 @@ let gen_bool_while_loop
         [ A.(
             AilSif
               ( wrap_with_convert_from_cn_bool if_cond_expr,
-                mk_stmt (AilSblock ([], List.map mk_stmt (ss @ [ inplace_and_stat ]))),
+                mk_stmt (AilSblock ([], List.map mk_stmt (ss @ [ and_stat ]))),
                 mk_stmt (AilSblock ([], [ mk_stmt AilSskip ])) ));
           incr_stat
         ]
-    | None -> List.map mk_stmt (ss @ [ inplace_and_stat; incr_stat ])
+    | None -> List.map mk_stmt (ss @ [ and_stat; incr_stat ])
   in
   let while_loop =
     A.(AilSwhile (while_cond_with_conversion, mk_stmt (AilSblock (bs, loop_body)), 0))

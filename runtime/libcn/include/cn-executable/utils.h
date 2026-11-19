@@ -154,9 +154,7 @@ typedef struct cn_pointer {
   void* ptr;
 } cn_pointer;
 
-typedef struct cn_bool {
-  bool val;
-} cn_bool;
+typedef bool cn_bool;
 
 typedef struct cn_alloc_id {
   uint8_t val;
@@ -210,21 +208,38 @@ void cn_failure(enum cn_failure_mode failure_mode, enum spec_mode spec_mode);
 
 /* Conversion functions */
 
-cn_bool* convert_to_cn_bool(bool b);
-bool convert_from_cn_bool(cn_bool* b);
-void cn_assert(cn_bool* cn_b, enum spec_mode spec_mode);
-cn_bool* cn_bool_and(cn_bool* b1, cn_bool* b2);
-void cn_bool_inplace_and(cn_bool* inplace_b1, cn_bool* b2);
-cn_bool* cn_bool_or(cn_bool* b1, cn_bool* b2);
-cn_bool* cn_bool_not(cn_bool* b);
-cn_bool* cn_bool_implies(cn_bool* b1, cn_bool* b2);
-cn_bool* cn_bool_equality(cn_bool* b1, cn_bool* b2);
+static inline cn_bool convert_to_cn_bool(bool b) {
+  return b;
+}
+static inline bool convert_from_cn_bool(cn_bool b) {
+  return b;
+}
+void cn_assert(cn_bool cn_b, enum spec_mode spec_mode);
+static inline cn_bool cn_bool_and(cn_bool b1, cn_bool b2) {
+  return b1 && b2;
+}
+static inline cn_bool cn_bool_or(cn_bool b1, cn_bool b2) {
+  return b1 || b2;
+}
+static inline cn_bool cn_bool_not(cn_bool b) {
+  return !b;
+}
+static inline cn_bool cn_bool_implies(cn_bool b1, cn_bool b2) {
+  return !b1 || b2;
+}
+static inline cn_bool cn_bool_equality(cn_bool b1, cn_bool b2) {
+  return b1 == b2;
+}
+/* Equality of two map values, which are boxed */
+static inline cn_bool cn_bool_ptr_equality(void* b1, void* b2) {
+  return *(cn_bool*)b1 == *(cn_bool*)b2;
+}
 
 cn_map* map_create(void);
 cn_map* cn_map_set(cn_map* m, cn_integer* key, void* value);
 cn_map* cn_map_deep_copy(cn_map* m1);
-cn_bool* cn_map_equality(
-    cn_map* m1, cn_map* m2, cn_bool*(value_equality_fun)(void*, void*));
+cn_bool cn_map_equality(
+    cn_map* m1, cn_map* m2, cn_bool(value_equality_fun)(void*, void*));
 
 #define convert_to_cn_map(c_ptr, cntype, num_elements)                                   \
   ({                                                                                     \
@@ -239,12 +254,12 @@ cn_bool* cn_map_equality(
     (arr)[i] = convert_from_##cntype(cn_map_get_##cntype(m, convert_to_cn_integer(i)));  \
   }
 
-cn_bool* cn_pointer_equality(void* i1, void* i2);
-cn_bool* cn_pointer_is_null(cn_pointer*);
-cn_bool* cn_pointer_le(cn_pointer* i1, cn_pointer* i2);
-cn_bool* cn_pointer_lt(cn_pointer* i1, cn_pointer* i2);
-cn_bool* cn_pointer_ge(cn_pointer* i1, cn_pointer* i2);
-cn_bool* cn_pointer_gt(cn_pointer* i1, cn_pointer* i2);
+cn_bool cn_pointer_equality(void* i1, void* i2);
+cn_bool cn_pointer_is_null(cn_pointer*);
+cn_bool cn_pointer_le(cn_pointer* i1, cn_pointer* i2);
+cn_bool cn_pointer_lt(cn_pointer* i1, cn_pointer* i2);
+cn_bool cn_pointer_ge(cn_pointer* i1, cn_pointer* i2);
+cn_bool cn_pointer_gt(cn_pointer* i1, cn_pointer* i2);
 
 #define cn_pointer_deref(CN_PTR, CTYPE) *((CTYPE*)CN_PTR->ptr)
 
@@ -253,7 +268,7 @@ cn_bool* cn_pointer_gt(cn_pointer* i1, cn_pointer* i2);
 #define CN_GEN_EQUALITY(CNTYPE) CN_GEN_EQUALITY_(CNTYPE)
 
 #define CN_GEN_EQUALITY_(CNTYPE)                                                         \
-  static inline cn_bool* CNTYPE##_equality(void* i1, void* i2) {                         \
+  static inline cn_bool CNTYPE##_equality(void* i1, void* i2) {                          \
     return convert_to_cn_bool(((CNTYPE*)i1)->val == ((CNTYPE*)i2)->val);                 \
   }
 
@@ -272,22 +287,22 @@ cn_bool* cn_pointer_gt(cn_pointer* i1, cn_pointer* i2);
 /* Arithmetic operators */
 
 #define CN_GEN_LT(CNTYPE)                                                                \
-  static inline cn_bool* CNTYPE##_lt(CNTYPE* i1, CNTYPE* i2) {                           \
+  static inline cn_bool CNTYPE##_lt(CNTYPE* i1, CNTYPE* i2) {                            \
     return convert_to_cn_bool(i1->val < i2->val);                                        \
   }
 
 #define CN_GEN_LE(CNTYPE)                                                                \
-  static inline cn_bool* CNTYPE##_le(CNTYPE* i1, CNTYPE* i2) {                           \
+  static inline cn_bool CNTYPE##_le(CNTYPE* i1, CNTYPE* i2) {                            \
     return convert_to_cn_bool(i1->val <= i2->val);                                       \
   }
 
 #define CN_GEN_GT(CNTYPE)                                                                \
-  static inline cn_bool* CNTYPE##_gt(CNTYPE* i1, CNTYPE* i2) {                           \
+  static inline cn_bool CNTYPE##_gt(CNTYPE* i1, CNTYPE* i2) {                            \
     return convert_to_cn_bool(i1->val > i2->val);                                        \
   }
 
 #define CN_GEN_GE(CNTYPE)                                                                \
-  static inline cn_bool* CNTYPE##_ge(CNTYPE* i1, CNTYPE* i2) {                           \
+  static inline cn_bool CNTYPE##_ge(CNTYPE* i1, CNTYPE* i2) {                            \
     return convert_to_cn_bool(i1->val >= i2->val);                                       \
   }
 
@@ -466,7 +481,9 @@ static inline int ipow(int base, int exp) {
   }
 
 cn_map* default_cn_map(void);
-cn_bool* default_cn_bool(void);
+static inline cn_bool default_cn_bool(void) {
+  return 0;
+}
 
 /* Ghost arguments */
 void init_ghost_frame_stack(void);
@@ -500,6 +517,39 @@ void free_ghost_frame_stack(void);
   }                                                                                      \
   static inline CNTYPE* load_##CNTYPE##_arg(int i) {                                     \
     return (CNTYPE*)load_arg_from_ghost_frame(i);                                        \
+  }
+
+/* The same for a CN type passed by value: boxed on the way into the map or the frame, unboxed on the way out */
+#define CN_GEN_BOX(CNTYPE)                                                               \
+  static inline CNTYPE* CNTYPE##_box(CNTYPE i) {                                         \
+    CNTYPE* ret = (CNTYPE*)cn_bump_aligned_alloc(alignof(CNTYPE), sizeof(CNTYPE));       \
+    *ret = i;                                                                            \
+    return ret;                                                                          \
+  }
+
+#define CN_GEN_MAP_GET_BY_VALUE(CNTYPE)                                                  \
+  static inline CNTYPE cn_map_get_##CNTYPE(cn_map* m, cn_integer* key) {                 \
+    int64_t* key_ptr = (int64_t*)fulm_malloc(sizeof(int64_t), &fulm_default_alloc);      \
+    *key_ptr = key->val;                                                                 \
+    void* res = ht_get(m, key_ptr);                                                      \
+    fulm_free(key_ptr, &fulm_default_alloc);                                             \
+    if (!res) {                                                                          \
+      return default_##CNTYPE();                                                         \
+    }                                                                                    \
+    return *(CNTYPE*)res;                                                                \
+  }
+
+#define CN_GEN_MAP_SET_BY_VALUE(CNTYPE)                                                  \
+  static inline cn_map* cn_map_set_##CNTYPE(cn_map* m, cn_integer* key, CNTYPE value) {  \
+    return cn_map_set(m, key, CNTYPE##_box(value));                                      \
+  }
+
+#define CN_GEN_GHOST_ARG_BY_VALUE(CNTYPE)                                                \
+  static inline void add_##CNTYPE##_arg(int i, CNTYPE value) {                           \
+    add_arg_to_ghost_frame(i, CNTYPE##_box(value));                                      \
+  }                                                                                      \
+  static inline CNTYPE load_##CNTYPE##_arg(int i) {                                      \
+    return *(CNTYPE*)load_arg_from_ghost_frame(i);                                       \
   }
 
 #define CN_GEN_CASTS_INNER(CTYPE, CNTYPE)                                                \
@@ -588,9 +638,10 @@ CN_GEN_DEFAULT(cn_pointer)
 CN_GEN_MAP_GET(cn_pointer)
 CN_GEN_MAP_SET(cn_pointer)
 CN_GEN_GHOST_ARG(cn_pointer)
-CN_GEN_MAP_GET(cn_bool)
-CN_GEN_MAP_SET(cn_bool)
-CN_GEN_GHOST_ARG(cn_bool)
+CN_GEN_BOX(cn_bool)
+CN_GEN_MAP_GET_BY_VALUE(cn_bool)
+CN_GEN_MAP_SET_BY_VALUE(cn_bool)
+CN_GEN_GHOST_ARG_BY_VALUE(cn_bool)
 CN_GEN_MAP_SET(cn_alloc_id)
 CN_GEN_GHOST_ARG(cn_alloc_id)
 CN_GEN_MAP_GET(cn_map)
