@@ -219,7 +219,6 @@ cn_bool* cn_bool_or(cn_bool* b1, cn_bool* b2);
 cn_bool* cn_bool_not(cn_bool* b);
 cn_bool* cn_bool_implies(cn_bool* b1, cn_bool* b2);
 cn_bool* cn_bool_equality(cn_bool* b1, cn_bool* b2);
-void* cn_ite(cn_bool* b, void* e1, void* e2);
 
 cn_map* map_create(void);
 cn_map* cn_map_set(cn_map* m, cn_integer* key, void* value);

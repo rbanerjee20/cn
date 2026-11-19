@@ -271,10 +271,6 @@ cn_bool* cn_bool_equality(cn_bool* b1, cn_bool* b2) {
   return convert_to_cn_bool(b1->val == b2->val);
 }
 
-void* cn_ite(cn_bool* b, void* e1, void* e2) {
-  return b->val ? e1 : e2;
-}
-
 cn_map* map_create(void) {
   return ht_create(&bump_alloc);
 }
