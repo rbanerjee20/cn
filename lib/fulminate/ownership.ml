@@ -174,6 +174,79 @@ let generate_c_local_ownership_entry_inj
     [ (get_end_loc loc, List.concat bs, List.concat ss) ])
 
 
+(* A declarator with an expression initialiser registers itself inside it, along with any
+   earlier declarators of the declaration not yet registered, so that later initialisers
+   can use them:
+
+   int u, r = init(&u), w = r;
+
+   ->
+
+   int u, r = (c_add_to_ghost_state(&u, ..), c_add_to_ghost_state(&r, ..), init(&u)),
+          w = (c_add_to_ghost_state(&w, ..), r);
+
+   Declarators left over (no initialiser, an initialiser list, or an array) are registered
+   after the declaration. Returns the injections after the declaration and the text injections
+   around the initialisers. *)
+let generate_c_local_ownership_entry_injs ~contains_user_spec loc decls bindings =
+  let entry_fcall_str sym_and_ctype =
+    CF.Pp_utils.to_plain_string
+      CF.Pp_ail.(
+        with_executable_spec
+          pp_expression
+          (generate_c_local_ownership_entry_fcall sym_and_ctype))
+  in
+  let has_position loc =
+    match Cerb_location.bbox [ loc ] with `Bbox _ -> true | `Other _ -> false
+  in
+  (* An array cannot be initialised by a comma expression, e.g. char s[] = "abc" *)
+  let is_array ctype = match rm_ctype ctype with C.Array _ -> true | _ -> false in
+  let rec aux unregistered text_injs = function
+    | [] -> (unregistered, text_injs)
+    | (sym, e_opt) :: decls ->
+      let _, ((_, _, is_register), _, _, ctype) = find_binding bindings sym in
+      (* Don't instrument register variables -- taking their address is forbidden *)
+      if is_register then
+        aux unregistered text_injs decls
+      else (
+        match e_opt with
+        | Some (A.AnnotatedExpression (_, _, e_loc, e_))
+          when has_position e_loc && not (is_array ctype) ->
+          let entry_fcall_strs =
+            List.map entry_fcall_str (unregistered @ [ (sym, ctype) ])
+          in
+          (* A constant is not a null pointer constant inside a comma expression *)
+          let cast_start, cast_end =
+            match (rm_ctype ctype, e_) with
+            | C.Pointer _, A.AilEconst _ -> ("(typeof(" ^ Sym.pp_string sym ^ "))(", ")")
+            | _ -> ("", "")
+          in
+          let start_inj =
+            ( get_start_loc e_loc,
+              [ "(" ^ String.concat ", " entry_fcall_strs ^ ", " ^ cast_start ] )
+          in
+          let end_inj = (get_end_loc e_loc, [ cast_end ^ ")" ]) in
+          aux [] (text_injs @ [ start_inj; end_inj ]) decls
+        | _ -> aux (unregistered @ [ (sym, ctype) ]) text_injs decls)
+  in
+  let unregistered, text_injs = aux [] [] decls in
+  let entry_stats =
+    List.filter_map (generate_c_local_ownership_entry ~is_register:false) unregistered
+  in
+  let addr_cn_bs_and_decls =
+    if contains_user_spec then
+      List.filter_map
+        (fun (sym, _) ->
+           let _, ((_, _, is_register), _, _, _) = find_binding bindings sym in
+           if is_register then None else Some (generate_c_local_cn_addr_var sym))
+        decls
+    else
+      []
+  in
+  let addr_cn_bs, addr_cn_decls = List.split addr_cn_bs_and_decls in
+  ([ (get_end_loc loc, addr_cn_bs, entry_stats @ addr_cn_decls) ], text_injs)
+
+
 (* c_remove_local_footprint(&xs, cn_ownership_global_ghost_state,
    sizeof(struct node * )); *)
 let generate_c_local_ownership_exit ~is_register (local_sym, local_ctype) =
@@ -563,13 +636,17 @@ let get_c_block_entry_exit_injs_aux ~contains_user_spec cerb_conf bindings s =
     in
     match s_ with
     | A.(AilSdeclaration decls) ->
-      let injs =
-        generate_c_local_ownership_entry_inj
-          ~contains_user_spec
-          ~is_forloop
-          loc
-          decls
-          bindings
+      let injs, text_injs =
+        if is_forloop then
+          ( generate_c_local_ownership_entry_inj
+              ~contains_user_spec
+              ~is_forloop
+              loc
+              decls
+              bindings,
+            [] )
+        else
+          generate_c_local_ownership_entry_injs ~contains_user_spec loc decls bindings
       in
       let injs' =
         List.map
@@ -577,7 +654,8 @@ let get_c_block_entry_exit_injs_aux ~contains_user_spec cerb_conf bindings s =
              match e_opt with Some e -> aux_expr e | None -> empty_block_local_injs)
           decls
       in
-      concat_block_local_injs [ ret_standard_injs injs; concat_block_local_injs injs' ]
+      concat_block_local_injs
+        [ ret_standard_injs injs; ret_gcc_injs text_injs; concat_block_local_injs injs' ]
     | AilSblock
         ( bs,
           ([ A.{ loc = decl_loc; node = AilSdeclaration decls; _ };
